@@ -3,6 +3,7 @@ import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import reactRecommended from 'eslint-plugin-react/configs/recommended.js';
+import prettier from 'eslint-config-prettier';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -16,6 +17,14 @@ export default [
                 version: 'detect',
             },
         },
+        // extends: [
+        //   // ...,
+        //   "plugin:react-hooks/recommended",
+        //   'eslint:recommended',
+        //   'plugin:@typescript-eslint/recommended',
+        //   'plugin:prettier/recommended',
+        //   'prettier'
+        // ],
     },
     pluginJs.configs.recommended,
     ...tseslint.configs.recommended,
@@ -33,12 +42,7 @@ export default [
             'react/react-in-jsx-scope': 'off', // 避免 {} 才視為一組
             'react/jsx-uses-react': 'off',
         },
-        extends: [
-            // ...,
-            'eslint:recommended',
-            'plugin:@typescript-eslint/recommended',
-            'plugin:prettier/recommended',
-            'prettier',
-        ],
     },
+    // https://qiita.com/masafumi1073/items/703f2af253f6c3971883
+    prettier,
 ];
