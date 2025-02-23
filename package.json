@@ -52,6 +52,11 @@
         "win": {
             "target": "nsis",
             "icon": "public/apple.ico"
+        },
+        "mac": {
+          "target": ["dmg"],
+          "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
+          "icon": "public/apple.icns"
         }
     }
 }
