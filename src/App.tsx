@@ -10,7 +10,9 @@ function App() {
 <>
   <div>
     <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    <div className="flex justify-center items-center space-x-4"> {/* 置中並水平排列圖片 */}
+                <div className="flex justify-center items-center space-x-4">
+                    {' '}
+                    {/* 置中並水平排列圖片 */}
       <a href="https://vite.dev" target="_blank" rel="noreferrer">
         <img src={viteLogo} className="logo" alt="Vite logo" />
       </a>
