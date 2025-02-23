@@ -2,10 +2,14 @@
     "name": "lcy",
     "private": true,
     "version": "0.0.0",
-    "type": "module",
+    "type": "commonjs",
+    "main": "electron.js",
     "scripts": {
+        "start": "vite",
+        "electron": "electron .",
+        "build": "vite build && electron .",
+        "package": "electron-builder",
         "dev": "vite",
-        "build": "tsc -b && vite build",
         "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
         "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
         "preview": "vite preview"
@@ -21,6 +25,7 @@
         "@types/react": "^19.0.8",
         "@types/react-dom": "^19.0.3",
         "@vitejs/plugin-react": "^4.3.4",
+        "electron": "^34.2.0",
         "eslint": "^9.21.0",
         "eslint-config-prettier": "^10.0.1",
         "eslint-plugin-prettier": "^5.2.3",
@@ -32,5 +37,20 @@
         "typescript": "~5.7.2",
         "typescript-eslint": "^8.24.1",
         "vite": "^6.1.0"
+    },
+    "build": {
+        "appId": "com.lcy.id",
+        "productName": "Lcy",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "build/**/*",
+            "electron.js"
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "public/apple.ico"
+        }
     }
 }

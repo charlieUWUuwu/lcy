@@ -41,6 +41,7 @@ export default [
             // https://coreui.io/blog/how-to-fix-react-must-be-in-scope-when-using-jsx/
             'react/react-in-jsx-scope': 'off', // 避免 {} 才視為一組
             'react/jsx-uses-react': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
         },
     },
     // https://qiita.com/masafumi1073/items/703f2af253f6c3971883
