@@ -1,7 +1,3 @@
-// import path from 'path';
-
-// import { BrowserWindow, app } from 'electron';
-
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
