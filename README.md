@@ -1,50 +1,65 @@
-# React + TypeScript + Vite
+# Lcy 膜壓預測系統
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Required Environment
 
-Currently, two official plugins are available:
+- Node.js v22.14.0
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Development
 
-## Expanding the ESLint configuration
+- Clone this repo
+  ```shell
+  $ git clone https://github.com/charlieUWUuwu/lcy.git
+  ```
+- Install the dependencies
+  ```shell
+  $ npm install
+  ```
+- Start the development server and launch Electron
+  ```shell
+  # This command starts the Vite development server on port 3000 and launches the Electron app for testing.
+  $ npm run dev
+  ```
+- Package the project
+  ```shell
+  $ npm run build
+  ```
+- Generate an installer (`.exe` for Windows, `.dmg` for macOS).
+  - ⚠ Note: On Windows, you may need to run this command in **Administrator mode** to avoid permission issues.
+    ```shell
+    $ npm run package
+    ```
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## How to maintain this repo
 
-- Configure the top-level `parserOptions` property like this:
+每次增修內容前請依循下列流程進行：
 
-```js
-export default tseslint.config({
-    languageOptions: {
-        // other options...
-        parserOptions: {
-            project: ['./tsconfig.node.json', './tsconfig.app.json'],
-            tsconfigRootDir: import.meta.dirname,
-        },
-    },
-});
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react';
-
-export default tseslint.config({
-    // Set the react version
-    settings: { react: { version: '18.3' } },
-    plugins: {
-        // Add the react plugin
-        react,
-    },
-    rules: {
-        // other rules...
-        // Enable its recommended rules
-        ...react.configs.recommended.rules,
-        ...react.configs['jsx-runtime'].rules,
-    },
-});
-```
+1. Pull origin/develop 最新版本
+   ```shell
+   $ git pull origin develop
+   ```
+2. 在 local 新增 branch 並切換
+   ```shell
+   $ git checkout -b <NEW_BRANCH_NAME>
+   ```
+3. 編輯完成後，格式化並檢查程式碼
+   ```shell
+   $ npm run format-and-lint
+   ```
+4. 沒問題的話，進行 commit
+   ```shell
+   $ git add .
+   $ git commit -m "COMMIT_MSG"
+   ```
+5. 回到 develop 再次獲取 origin/develop 的最新版本、與自己的修正合併並修正出現的 conflict
+   ```shell
+   $ git checkout develop
+   $ git pull
+   $ git checkout <NEW_BRANCH_NAME>
+   $ git rebase develop
+   ```
+6. 將新 branch 的修正與 develop 合併並 push 到 Github
+   ```shell
+   $ git checkout develop
+   $ git merge <NEW_BRANCH_NAME>
+   $ git push
+   ```
