@@ -1,62 +1,66 @@
 {
-    "name": "lcy",
-    "private": true,
-    "version": "0.0.0",
-    "type": "commonjs",
-    "main": "electron.js",
-    "scripts": {
-        "start": "vite",
-        "electron": "electron .",
-        "build": "vite build && electron .",
-        "package": "electron-builder",
-        "dev": "vite",
-        "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
-        "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
-        "preview": "vite preview"
+  "name": "lcy",
+  "private": true,
+  "version": "0.0.0",
+  "type": "commonjs",
+  "main": "electron.js",
+  "scripts": {
+    "start": "vite",
+    "electron": "electron .",
+    "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
+    "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
+    "format-and-lint": "npm run format && npm run lint",
+    "dev": "vite --port 3000 && npm run electron",
+    "preview": "vite preview",
+    "build": "vite build && electron .",
+    "package": "electron-builder"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.0.8",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "^15.15.0",
+    "prettier": "^3.5.2",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.1.0"
+  },
+  "build": {
+    "appId": "com.lcy.id",
+    "productName": "Lcy",
+    "directories": {
+      "output": "dist"
     },
-    "dependencies": {
-        "@tailwindcss/vite": "^4.0.8",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-        "tailwindcss": "^4.0.8"
+    "files": [
+      "build/**/*",
+      "electron.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/apple.ico"
     },
-    "devDependencies": {
-        "@eslint/js": "^9.21.0",
-        "@types/react": "^19.0.8",
-        "@types/react-dom": "^19.0.3",
-        "@vitejs/plugin-react": "^4.3.4",
-        "electron": "^34.2.0",
-        "electron-builder": "^25.1.8",
-        "eslint": "^9.21.0",
-        "eslint-config-prettier": "^10.0.1",
-        "eslint-plugin-prettier": "^5.2.3",
-        "eslint-plugin-react": "^7.37.4",
-        "eslint-plugin-react-hooks": "^5.0.0",
-        "eslint-plugin-react-refresh": "^0.4.18",
-        "globals": "^15.15.0",
-        "prettier": "^3.5.2",
-        "typescript": "~5.7.2",
-        "typescript-eslint": "^8.24.1",
-        "vite": "^6.1.0"
-    },
-    "build": {
-        "appId": "com.lcy.id",
-        "productName": "Lcy",
-        "directories": {
-            "output": "dist"
-        },
-        "files": [
-            "build/**/*",
-            "electron.js"
-        ],
-        "win": {
-            "target": "nsis",
-            "icon": "public/apple.ico"
-        },
-        "mac": {
-          "target": ["dmg"],
-          "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
-          "icon": "public/apple.icns"
-        }
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "artifactName": "${productName}-Mac-${version}-Installer.${ext}",
+      "icon": "public/apple.icns"
     }
+  }
 }

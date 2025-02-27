@@ -1,7 +1,4 @@
 {
-  "printWidth": 100,
-  "tabWidth": 4,
-  "useTabs": false,
   "semi": true,
   "singleQuote": true,
   "quoteProps": "as-needed",
@@ -15,5 +12,8 @@
   "proseWrap": "preserve",
   "htmlWhitespaceSensitivity": "css",
   "vueIndentScriptAndStyle": true,
-  "endOfLine": "lf"
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "importOrder": ["^[react]", "^@(?!/)", "^@/", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
 }
