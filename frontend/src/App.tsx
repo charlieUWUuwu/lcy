@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
-import './App.css';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import DataTraining from './components/DataTraining';
+import Home from './components/Home';
+import LoadModel from './components/LoadModel';
+import Navigation from './components/Navigation';
+import './index.css';
 
-function App() {
-  const [count, setCount] = useState(0);
+const App: React.FC = () => {
+  const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
+  const [modelRecall, setModelRecall] = useState<number | null>(null);
 
   const handleClick = async () => {
     try {
@@ -27,30 +32,45 @@ function App() {
   };
 
   return (
-    <>
-      <div>
-        <h1 className="text-3xl font-bold underline">Hello world!</h1>
-        <div className="flex justify-center items-center space-x-4">
-          {' '}
-          {/* 置中並水平排列圖片 */}
-          <a href="https://vite.dev" target="_blank" rel="noreferrer">
-            <img src={viteLogo} className="logo" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank" rel="noreferrer">
-            <img src={reactLogo} className="logo react" alt="React logo" />
-          </a>
+    <Router>
+      <div className="app-container">
+        <Navigation selectedModel={selectedModel} modelAccuracy={modelAccuracy} />
+        <div className="content-container">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route
+              path="/data-training"
+              element={
+                <DataTraining
+                  onModelTrained={(model, accuracy, recall) => {
+                    setSelectedModel(model);
+                    setModelAccuracy(accuracy);
+                    setModelRecall(recall);
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/load-model"
+              element={
+                <LoadModel
+                  selectedModel={selectedModel}
+                  modelAccuracy={modelAccuracy}
+                  modelRecall={modelRecall}
+                  onModelLoaded={(model, accuracy, recall) => {
+                    setSelectedModel(model);
+                    setModelAccuracy(accuracy);
+                    setModelRecall(recall);
+                  }}
+                />
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={handleClick}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    </Router>
   );
-}
+};
 
 export default App;

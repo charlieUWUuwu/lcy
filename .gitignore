@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.vite
+
 node_modules
 dist
 dist-ssr
@@ -23,3 +25,9 @@ build
 *.njsproj
 *.sln
 *.sw?
+
+# need to fix. waited list
+hooks
+services
+utils
+types
