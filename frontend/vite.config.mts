@@ -8,6 +8,5 @@ export default defineConfig({
     plugins: [react(), tailwindcss()],
     build: {
       outDir: 'build',  // 指定打包後的輸出目錄
-      // 其他配置選項
     },
 });

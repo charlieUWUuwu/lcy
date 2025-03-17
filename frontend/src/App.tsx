@@ -7,6 +7,25 @@ import viteLogo from '/vite.svg';
 function App() {
   const [count, setCount] = useState(0);
 
+  const handleClick = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:3500/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ num1: 1, num2: 5 }),
+      });
+
+      if (!response.ok) throw new Error('API 請求失敗');
+
+      const data = await response.json();
+      setCount(data.sum); // 更新 count
+    } catch (error) {
+      console.error('請求錯誤:', error);
+    }
+  };
+
   return (
     <>
       <div>
@@ -24,7 +43,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
+        <button onClick={handleClick}>count is {count}</button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
