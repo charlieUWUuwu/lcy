@@ -15,6 +15,10 @@
   ```shell
   git clone https://github.com/charlieUWUuwu/lcy.git
   ```
+- Enter `/frontend`
+  ```shell
+  cd frontend
+  ```
 - Install the dependencies
   ```shell
   npm install
