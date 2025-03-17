@@ -51,6 +51,12 @@
       "build/**/*",
       "electron.js"
     ],
+    "extraResources": [
+      {
+        "from": "../backend/backend_server.exe",
+        "to": "backend_server.exe"
+      }
+    ],
     "win": {
       "target": "nsis",
       "icon": "public/apple.ico"
