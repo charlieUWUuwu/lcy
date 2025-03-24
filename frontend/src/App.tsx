@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
 import DataTraining from './components/DataTraining';
 import Home from './components/Home';

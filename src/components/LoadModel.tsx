@@ -20,6 +20,54 @@ interface ModelData {
   timestamp: string;
 }
 
+// 為 predictionData 定義明確的介面
+interface ChartDataset {
+  label: string;
+  data: number[];
+  borderColor: string;
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: ChartDataset[];
+}
+
+// 為 streamData 定義明確的介面
+interface StreamDataPoint {
+  time: string;
+  pressure: number;
+  prediction: number;
+  timestamp?: string;
+  [key: string]: unknown; // 使用 unknown 替代 any，更安全
+}
+
+// 為 correlationData 定義明確的介面
+interface CorrelationData {
+  features: string[];
+  matrix: number[][];
+}
+
+// 定義 ProductionData 介面
+interface ProductionData {
+  timestamp: string | number | Date;
+  pressure: number;
+  [key: string]: unknown;
+}
+
+// 確保 window.electronAPI 類型定義
+declare global {
+  interface Window {
+    electronAPI: {
+      loadFile: (options: { extensions: string[] }) => Promise<string>;
+      readFile: (filePath: string) => Promise<string>;
+      saveFile: (options: { defaultPath: string; extensions: string[] }) => Promise<string>;
+      writeFile: (filePath: string, content: string) => Promise<void>;
+      getProductionData: () => Promise<void>;
+      onDataUpdate: (callback: (data: ProductionData) => void) => void;
+    };
+  }
+}
+
 const LoadModel: React.FC<LoadModelProps> = ({
   // selectedModel,
   // modelAccuracy,
@@ -29,25 +77,21 @@ const LoadModel: React.FC<LoadModelProps> = ({
   const navigate = useNavigate();
   const [modelPath, setModelPath] = useState<string | null>(null);
   const [modelData, setModelData] = useState<ModelData | null>(null);
-  // const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isPredicting, setIsPredicting] = useState<boolean>(false);
-  const [predictionData, setPredictionData] = useState<any | null>(null);
+  const [predictionData, setPredictionData] = useState<ChartData | null>(null);
   const [activeTab, setActiveTab] = useState<'feature' | 'prediction'>('feature');
-  const [streamData, setStreamData] = useState<any[]>([]);
-  const [correlationData, setCorrelationData] = useState<any | null>(null);
+  const [streamData, setStreamData] = useState<StreamDataPoint[]>([]);
+  const [correlationData, setCorrelationData] = useState<CorrelationData | null>(null);
 
   // Load model from local storage
   const handleLoadModel = useCallback(async () => {
     try {
-      setIsLoading(true);
-
       // In a real application, this would use the Electron API
       const filePath = await window.electronAPI.loadFile({
         extensions: ['json'],
       });
 
       if (!filePath) {
-        setIsLoading(false);
         return;
       }
 
@@ -63,17 +107,14 @@ const LoadModel: React.FC<LoadModelProps> = ({
       // Generate correlation data for visualization
       const mockCorrelationData = generateMockCorrelationData(modelData.features);
       setCorrelationData(mockCorrelationData);
-
-      setIsLoading(false);
     } catch (error) {
       console.error('Error loading model:', error);
       alert('Error loading model. Please try again.');
-      setIsLoading(false);
     }
   }, [onModelLoaded]);
 
   // Generate mock correlation data
-  const generateMockCorrelationData = (features: string[]) => {
+  const generateMockCorrelationData = (features: string[]): CorrelationData => {
     const matrix = [];
 
     for (let i = 0; i < features.length; i++) {
@@ -102,7 +143,7 @@ const LoadModel: React.FC<LoadModelProps> = ({
       await window.electronAPI.getProductionData();
 
       // Listen for data updates
-      window.electronAPI.onDataUpdate((data) => {
+      window.electronAPI.onDataUpdate((data: ProductionData) => {
         // Add timestamp for charting
         const timestamp = new Date(data.timestamp);
         const formattedTime = `${timestamp.getHours()}:${timestamp.getMinutes()}:${timestamp.getSeconds()}`;
@@ -113,14 +154,21 @@ const LoadModel: React.FC<LoadModelProps> = ({
 
         // Add to stream data
         setStreamData((prevData) => {
-          const newData = [...prevData, { ...data, prediction, time: formattedTime }];
+          const newData = [
+            ...prevData,
+            {
+              ...data,
+              prediction,
+              time: formattedTime,
+            } as StreamDataPoint,
+          ];
           // Keep only the last 30 data points for visualization
           return newData.slice(-30);
         });
       });
 
       // Generate initial chart data
-      const initialPredictionData = {
+      const initialPredictionData: ChartData = {
         labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
         datasets: [
           {

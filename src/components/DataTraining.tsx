@@ -43,6 +43,11 @@ interface CorrelationData {
   matrix: number[][];
 }
 
+interface ProcessedFileData {
+  headers: string[];
+  rows: Record<string, number>[];
+}
+
 const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
   const navigate = useNavigate();
   const [file, setFile] = useState<FileData | null>(null);
@@ -66,27 +71,24 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       if (!filePath) return;
 
       const fileContent = await window.electronAPI.readFile(filePath);
-      const fileName = filePath.split(/[/\\]/).pop();
 
       // Process the file content (example for CSV)
       // In a real app, you'd need proper parsing based on file type
       const processedData = processFileContent(fileContent);
 
       setFile({
-        name: fileName || 'Unknown file',
+        name: filePath.split(/[/\\]/).pop() || 'Unknown file',
         path: filePath,
         content: fileContent,
       });
 
       setDataset({
         features: processedData.headers,
-        data: processedData.rows
-          .map((row) =>
-            Object.values(row).map((value) =>
-              typeof value === 'number' ? value : parseFloat(value),
-            ),
-          )
-          .flat() as number[],
+        data: processedData.rows.map((row) =>
+          Object.values(row).map((value) =>
+            typeof value === 'number' ? value : parseFloat(value),
+          ),
+        ) as number[][],
       });
 
       // Set default values
@@ -115,7 +117,7 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     // 提取數據行（從第二列開始）
     const dataRows = rows
       .map((row) => {
-        const rowData: Record<string, any> = {};
+        const rowData: Record<string, number | null> = {}; // 使用具體類型替代 any
         for (let i = 1; i < row.length; i++) {
           rowData[`Feature_${i}`] = row[i] ? parseFloat(row[i]) : null; // 將數據轉換為數字
         }
@@ -125,13 +127,12 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
 
     return {
       headers: features,
-      rows: dataRows,
+      rows: dataRows as Record<string, number>[], // 處理 null 值的轉換
     };
   };
 
   // Generate correlation matrix (mock implementation)
-  const generateCorrelationMatrix = (data: any) => {
-    // In a real app, you'd calculate actual correlations between features
+  const generateCorrelationMatrix = (data: ProcessedFileData): CorrelationData => {
     const features = data.headers;
     const matrix = [];
 
