@@ -12,25 +12,6 @@ const App: React.FC = () => {
   const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
   const [modelRecall, setModelRecall] = useState<number | null>(null);
 
-  const handleClick = async () => {
-    try {
-      const response = await fetch('http://127.0.0.1:3500/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ num1: 1, num2: 5 }),
-      });
-
-      if (!response.ok) throw new Error('API 請求失敗');
-
-      const data = await response.json();
-      setCount(data.sum); // 更新 count
-    } catch (error) {
-      console.error('請求錯誤:', error);
-    }
-  };
-
   return (
     <Router>
       <div className="app-container">
