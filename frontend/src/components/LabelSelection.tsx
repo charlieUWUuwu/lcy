@@ -1,18 +1,31 @@
 import React from 'react';
+import { SelectionConfig } from './modelConfig';
 
 interface LabelSelectionProps {
   features: string[];
   selectedLabel: string | null;
   onLabelChange: (label: string | null) => void;
+  // For JSON configuration
+  configJson?: string;
+  onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
 }
 
 const LabelSelection: React.FC<LabelSelectionProps> = ({
   features,
   selectedLabel,
   onLabelChange,
+  onSelectionConfigChange,
 }) => {
   const handleLabelChange = (feature: string) => {
+    // Update the parent component
     onLabelChange(feature);
+    
+    // Update JSON configuration if callback is provided
+    if (onSelectionConfigChange) {
+      onSelectionConfigChange({
+        selectedLabel: feature
+      });
+    }
   };
 
   return (

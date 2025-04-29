@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import FeatureSelection from './FeatureSelection';
@@ -6,6 +6,7 @@ import HeatMap from './HeatMap';
 import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 import ModelSelection from './ModelSelection';
+import { TrainingConfig, SelectionConfig, ModelParameters as ConfigModelParameters } from './modelConfig';
 
 // Declare the electronAPI property on the window object
 declare global {
@@ -38,6 +39,9 @@ interface TrainingResult {
   accuracy: number;
   recall: number;
 }
+
+// Using the imported type instead of redefining it
+type ModelParameters = ConfigModelParameters;
 interface CorrelationData {
   features: string[];
   matrix: number[][];
@@ -55,6 +59,46 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>('LSTM');
+  const [modelParameters, setModelParameters] = useState<ModelParameters>({
+    learningRate: 0.001,
+    batchSize: 32,
+    epochs: 10,
+    earlyStoppingPatience: 3
+  });
+  
+  // JSON configuration state
+  const [configJson, setConfigJson] = useState<string>('');
+  
+  // Handle JSON configuration changes from the ModelSelection component
+  const handleConfigJsonChange = (newConfigJson: string) => {
+    setConfigJson(newConfigJson);
+    try {
+      const config = JSON.parse(newConfigJson);
+      
+      // Update model type if it changed in the JSON
+      if (config.modelType && config.modelType !== selectedModel) {
+        setSelectedModel(config.modelType);
+      }
+      
+      // Update parameters if they changed in the JSON
+      if (config.parameters) {
+        setModelParameters(config.parameters);
+      }
+      
+      // Update selection if it changed in the JSON
+      if (config.selection) {
+        if (config.selection.selectedFeatures) {
+          setSelectedFeatures(config.selection.selectedFeatures);
+        }
+        if (config.selection.selectedLabel) {
+          setSelectedLabel(config.selection.selectedLabel);
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing JSON configuration:', error);
+      // Don't update state for invalid JSON
+    }
+  };
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null);
   const [correlationData, setCorrelationData] = useState<CorrelationData | null>(null);
@@ -95,6 +139,13 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       if (processedData.headers.length > 0) {
         setSelectedFeatures([processedData.headers[0]]);
         setSelectedLabel(processedData.headers[1]);
+        
+        // Update JSON configuration
+        updateJsonConfig({
+          features: processedData.headers,
+          selectedFeatures: [processedData.headers[0]],
+          selectedLabel: processedData.headers[1]
+        });
       }
 
       // Generate correlation data
@@ -157,8 +208,30 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     alert('Data cleaning applied');
   };
 
+  // Function to update the JSON configuration
+  const updateJsonConfig = (selectionConfig?: Partial<SelectionConfig>) => {
+    const config: TrainingConfig = {
+      selection: {
+        features: dataset?.features || [],
+        selectedFeatures: selectionConfig?.selectedFeatures || selectedFeatures,
+        selectedLabel: selectionConfig?.selectedLabel || selectedLabel
+      },
+      modelType: selectedModel,
+      parameters: modelParameters
+    };
+    
+    setConfigJson(JSON.stringify(config, null, 2));
+  };
+  
+  // Update JSON config when relevant state changes
+  useEffect(() => {
+    if (dataset) {
+      updateJsonConfig();
+    }
+  }, [selectedFeatures, selectedLabel, selectedModel, modelParameters]);
+  
   // Handle model training
-  const handleTraining = () => {
+  const handleTraining = async () => {
     if (!dataset || !selectedFeatures.length || !selectedLabel) {
       alert('Please select a file, features, and label first');
       return;
@@ -166,11 +239,16 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
 
     setIsTraining(true);
 
-    // In a real app, this would trigger actual model training
-    // For this example, we'll simulate training with a timeout
-    setTimeout(() => {
-      const mockAccuracy = 98;
-      const mockRecall = 95;
+    try {
+      // Simulate training delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // In a real application, you would pass the JSON configuration to your training backend
+      console.log('Training with configuration:', configJson);
+
+      // Mock training result - in a real app, this would be the result from your backend
+      const mockAccuracy = Math.round(Math.random() * 30 + 70); // Random accuracy between 70-100%
+      const mockRecall = Math.round(Math.random() * 30 + 65); // Random recall between 65-95%
 
       setTrainingResult({
         accuracy: mockAccuracy,
@@ -178,8 +256,12 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       });
 
       onModelTrained(selectedModel, mockAccuracy, mockRecall);
+    } catch (error) {
+      console.error('Error during training:', error);
+      alert('Error during training. Please try again.');
+    } finally {
       setIsTraining(false);
-    }, 2000);
+    }
   };
 
   // Handle model saving
@@ -193,12 +275,14 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
 
       if (!savePath) return;
 
+      // Parse the current JSON configuration and add training results
+      const config = JSON.parse(configJson);
       const modelData = {
-        type: selectedModel,
-        features: selectedFeatures,
-        label: selectedLabel,
-        accuracy: trainingResult?.accuracy || 0,
-        recall: trainingResult?.recall || 0,
+        ...config,
+        results: {
+          accuracy: trainingResult?.accuracy || 0,
+          recall: trainingResult?.recall || 0,
+        },
         timestamp: new Date().toISOString(),
       };
 
@@ -259,12 +343,18 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
               features={dataset?.features || []}
               selectedFeatures={selectedFeatures}
               onFeaturesChange={setSelectedFeatures}
+              onSelectionConfigChange={(config) => {
+                updateJsonConfig(config);
+              }}
             />
 
             <LabelSelection
               features={dataset?.features || []}
               selectedLabel={selectedLabel}
               onLabelChange={setSelectedLabel}
+              onSelectionConfigChange={(config) => {
+                updateJsonConfig(config);
+              }}
             />
           </div>
 
@@ -276,9 +366,15 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       </div>
 
       <div className="model-training">
-        <ModelSelection selectedModel={selectedModel} onModelChange={setSelectedModel} />
+        <ModelSelection 
+          selectedModel={selectedModel} 
+          onModelChange={setSelectedModel} 
+          onParametersChange={setModelParameters}
+          configJson={configJson}
+          onConfigJsonChange={handleConfigJsonChange}
+        />
 
-        <div className="note">if result not great, select model again to retrain</div>
+        <div className="note pb-8">if result not great, select model again to retrain</div>
 
         <button className="training-button" onClick={handleTraining} disabled={isTraining}>
           {isTraining ? 'Training...' : 'start training'}

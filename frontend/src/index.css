@@ -284,7 +284,7 @@ body {
 }
 
 .model-training {
-  display: flex;
+  
   align-items: center;
   gap: 20px;
   padding: 10px;
@@ -294,11 +294,16 @@ body {
 }
 
 .model-selection {
-  display: flex;
   align-items: center;
   gap: 10px;
 }
+.model-selection .div-30 {
+  width: 30%; /* 佔容器的 30% */
+}
 
+.model-selection .div-70 {
+  width: 70%; /* 佔容器的 70% */
+}
 .select-container {
   position: relative;
   width: 120px;
