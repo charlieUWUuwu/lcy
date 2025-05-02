@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import FeatureSelection from './FeatureSelection';
@@ -7,6 +7,7 @@ import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 import ModelSelection from './ModelSelection';
 import { TrainingConfig, SelectionConfig, ModelParameters as ConfigModelParameters } from './modelConfig';
+import { trainModel, uploadFile, cleanData } from '../apiService';
 
 // Declare the electronAPI property on the window object
 declare global {
@@ -69,9 +70,14 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
   // JSON configuration state
   const [configJson, setConfigJson] = useState<string>('');
   
+  // 使用狀態來追蹤配置變化的來源
+  const [configChangeSource, setConfigChangeSource] = useState<'ui' | 'json' | 'model' | 'init' | 'features'>('init');
+  
   // Handle JSON configuration changes from the ModelSelection component
-  const handleConfigJsonChange = (newConfigJson: string) => {
+  const handleConfigJsonChange = useCallback((newConfigJson: string) => {
     setConfigJson(newConfigJson);
+    setConfigChangeSource('json');
+    
     try {
       const config = JSON.parse(newConfigJson);
       
@@ -98,58 +104,119 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       console.error('Error parsing JSON configuration:', error);
       // Don't update state for invalid JSON
     }
-  };
+  }, [selectedModel]);
+  
+
+  
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null);
   const [correlationData, setCorrelationData] = useState<CorrelationData | null>(null);
+  const [modelPath, setModelPath] = useState<string>('');
 
   // Handle file import
-  // 改成先將輸入的資料傳送到後端，接著獲得下採樣過後的資料(可慮先做筆數判斷)，再做顯示
+  // 先將輸入的資料傳送到後端，接著獲得下採樣過後的資料，再做顯示
   const handleFileImport = useCallback(async () => {
     try {
-      // In a real application, this would use the Electron API
+      // 使用 Electron API 選擇文件
       const filePath = await window.electronAPI.loadFile({
         extensions: ['csv', 'json', 'xlsx'],
       });
 
       if (!filePath) return;
 
+      // 讀取文件內容
       const fileContent = await window.electronAPI.readFile(filePath);
-
-      // Process the file content (example for CSV)
-      // In a real app, you'd need proper parsing based on file type
-      const processedData = processFileContent(fileContent);
-
+      
+      // 創建文件對象以便上傳到後端
+      const fileName = filePath.split(/[/\\]/).pop() || 'Unknown file';
+      const fileBlob = new Blob([fileContent], { type: 'text/csv' });
+      const fileObj = new File([fileBlob], fileName, { type: 'text/csv' });
+      
+      // 設置文件信息
       setFile({
-        name: filePath.split(/[/\\]/).pop() || 'Unknown file',
+        name: fileName,
         path: filePath,
         content: fileContent,
       });
-
-      setDataset({
-        features: processedData.headers,
-        data: processedData.rows.map((row) =>
-          Object.values(row).map((value) =>
-            typeof value === 'number' ? value : parseFloat(value),
-          ),
-        ) as number[][],
-      });
-
-      // Set default values
-      if (processedData.headers.length > 0) {
-        setSelectedFeatures([processedData.headers[0]]);
-        setSelectedLabel(processedData.headers[1]);
+      
+      // 顯示加載中狀態
+      // TODO: 添加加載指示器
+      
+      try {
+        // 上傳文件到後端進行處理
+        const response = await uploadFile(fileObj);
         
-        // Update JSON configuration
-        updateJsonConfig({
+        // 處理後端返回的數據
+        if (response && response.data) {
+          const processedData = {
+            headers: response.data.headers,
+            rows: response.data.rows
+          };
+          
+          setDataset({
+            features: processedData.headers,
+            data: processedData.rows.map((row: any) =>
+              Object.values(row).map((value: any) =>
+                typeof value === 'number' ? value : parseFloat(value),
+              ),
+            ) as number[][],
+          });
+          
+          // 設置默認值
+          if (processedData.headers.length > 0) {
+            setSelectedFeatures([processedData.headers[0]]);
+            setSelectedLabel(processedData.headers[1]);
+            
+            // 更新 JSON 配置
+            updateJsonConfig({
+              features: processedData.headers,
+              selectedFeatures: [processedData.headers[0]],
+              selectedLabel: processedData.headers[1]
+            });
+          }
+          
+          // 設置相關性數據（如果後端提供）
+          if (response.data.correlationMatrix) {
+            setCorrelationData({
+              features: processedData.headers,
+              matrix: response.data.correlationMatrix
+            });
+          } else {
+            // 如果後端沒有提供，則在前端生成
+            setCorrelationData(generateCorrelationMatrix(processedData));
+          }
+        }
+      } catch (uploadError) {
+        console.error('Error processing file on backend:', uploadError);
+        
+        // 如果後端處理失敗，則在前端處理
+        const processedData = processFileContent(fileContent);
+        
+        setDataset({
           features: processedData.headers,
-          selectedFeatures: [processedData.headers[0]],
-          selectedLabel: processedData.headers[1]
+          data: processedData.rows.map((row) =>
+            Object.values(row).map((value) =>
+              typeof value === 'number' ? value : parseFloat(value),
+            ),
+          ) as number[][],
         });
+        
+        // 設置默認值
+        if (processedData.headers.length > 0) {
+          setSelectedFeatures([processedData.headers[0]]);
+          setSelectedLabel(processedData.headers[1]);
+          
+          // 更新 JSON 配置
+          updateJsonConfig({
+            features: processedData.headers,
+            selectedFeatures: [processedData.headers[0]],
+            selectedLabel: processedData.headers[1]
+          });
+        }
+        
+        // 生成相關性數據
+        setCorrelationData(generateCorrelationMatrix(processedData));
       }
-
-      // Generate correlation data
-      setCorrelationData(generateCorrelationMatrix(processedData));
     } catch (error) {
       console.error('Error importing file:', error);
       alert('Error importing file. Please try again.');
@@ -203,13 +270,53 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
   };
 
   // Handle data cleaning
-  const handleDataCleaning = () => {
-    // In a real app, you would implement data cleaning logic here
-    alert('Data cleaning applied');
+  const handleDataCleaning = async () => {
+    if (!dataset) {
+      alert('Please import a file first');
+      return;
+    }
+    
+    try {
+      // 顯示加載中狀態
+      // TODO: 添加加載指示器
+      
+      // 發送數據清理請求到後端
+      const response = await cleanData(configJson);
+      
+      // 處理後端返回的清理後數據
+      if (response && response.data) {
+        const cleanedData = {
+          headers: response.data.headers,
+          rows: response.data.rows
+        };
+        
+        setDataset({
+          features: cleanedData.headers,
+          data: cleanedData.rows.map((row: any) =>
+            Object.values(row).map((value: any) =>
+              typeof value === 'number' ? value : parseFloat(value),
+            ),
+          ) as number[][],
+        });
+        
+        // 更新相關性數據（如果後端提供）
+        if (response.data.correlationMatrix) {
+          setCorrelationData({
+            features: cleanedData.headers,
+            matrix: response.data.correlationMatrix
+          });
+        }
+        
+        alert('Data cleaning completed successfully');
+      }
+    } catch (error) {
+      console.error('Error during data cleaning:', error);
+      alert('Error during data cleaning. Please try again.');
+    }
   };
 
   // Function to update the JSON configuration
-  const updateJsonConfig = (selectionConfig?: Partial<SelectionConfig>) => {
+  const updateJsonConfig = useCallback((selectionConfig?: Partial<SelectionConfig>) => {
     const config: TrainingConfig = {
       selection: {
         features: dataset?.features || [],
@@ -221,14 +328,25 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     };
     
     setConfigJson(JSON.stringify(config, null, 2));
-  };
+  }, [dataset, selectedFeatures, selectedLabel, selectedModel, modelParameters]);
   
   // Update JSON config when relevant state changes
   useEffect(() => {
-    if (dataset) {
+    // 只有當配置變化來源不是 JSON 時，才更新 JSON 配置
+    if (configChangeSource !== 'json' && dataset) {
       updateJsonConfig();
+      // 重置配置變化來源
+      setConfigChangeSource('init');
     }
-  }, [selectedFeatures, selectedLabel, selectedModel, modelParameters]);
+  }, [selectedFeatures, selectedLabel, selectedModel, modelParameters, dataset, configChangeSource, updateJsonConfig]);
+  
+  // 初始化 JSON 配置
+  useEffect(() => {
+    if (dataset && dataset.features.length > 0 && configJson === '') {
+      updateJsonConfig();
+      setConfigChangeSource('init');
+    }
+  }, [dataset, configJson, updateJsonConfig]);
   
   // Handle model training
   const handleTraining = async () => {
@@ -240,22 +358,31 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     setIsTraining(true);
 
     try {
-      // Simulate training delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // In a real application, you would pass the JSON configuration to your training backend
-      console.log('Training with configuration:', configJson);
-
-      // Mock training result - in a real app, this would be the result from your backend
-      const mockAccuracy = Math.round(Math.random() * 30 + 70); // Random accuracy between 70-100%
-      const mockRecall = Math.round(Math.random() * 30 + 65); // Random recall between 65-95%
-
-      setTrainingResult({
-        accuracy: mockAccuracy,
-        recall: mockRecall,
-      });
-
-      onModelTrained(selectedModel, mockAccuracy, mockRecall);
+      // 發送訓練請求到後端
+      const response = await trainModel(configJson);
+      
+      if (response && response.success) {
+        // 處理訓練結果
+        const accuracy = response.accuracy * 100; // 轉換為百分比
+        const recall = response.recall ? response.recall * 100 : 0; // 如果有召回率，也轉換為百分比
+        
+        setTrainingResult({
+          accuracy: Math.round(accuracy),
+          recall: Math.round(recall),
+        });
+        
+        // 保存模型路徑以便後續使用
+        if (response.model_path) {
+          setModelPath(response.model_path);
+          console.log('Model saved at:', response.model_path);
+        }
+        
+        onModelTrained(selectedModel, Math.round(accuracy), Math.round(recall));
+        
+        alert('Model training completed successfully!');
+      } else {
+        throw new Error('Training failed: ' + (response.error || 'Unknown error'));
+      }
     } catch (error) {
       console.error('Error during training:', error);
       alert('Error during training. Please try again.');
@@ -283,6 +410,7 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
           accuracy: trainingResult?.accuracy || 0,
           recall: trainingResult?.recall || 0,
         },
+        modelPath: modelPath, // 添加模型路徑
         timestamp: new Date().toISOString(),
       };
 
@@ -342,7 +470,10 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
             <FeatureSelection
               features={dataset?.features || []}
               selectedFeatures={selectedFeatures}
-              onFeaturesChange={setSelectedFeatures}
+              onFeaturesChange={(features) => {
+                setSelectedFeatures(features);
+                setConfigChangeSource('features');
+              }}
               onSelectionConfigChange={(config) => {
                 updateJsonConfig(config);
               }}
@@ -351,7 +482,10 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
             <LabelSelection
               features={dataset?.features || []}
               selectedLabel={selectedLabel}
-              onLabelChange={setSelectedLabel}
+              onLabelChange={(label) => {
+                setSelectedLabel(label);
+                setConfigChangeSource('features');
+              }}
               onSelectionConfigChange={(config) => {
                 updateJsonConfig(config);
               }}
@@ -368,8 +502,14 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
       <div className="model-training">
         <ModelSelection 
           selectedModel={selectedModel} 
-          onModelChange={setSelectedModel} 
-          onParametersChange={setModelParameters}
+          onModelChange={(model) => {
+            setSelectedModel(model);
+            setConfigChangeSource('model');
+          }} 
+          onParametersChange={(parameters) => {
+            setModelParameters(parameters);
+            setConfigChangeSource('ui');
+          }}
           configJson={configJson}
           onConfigJsonChange={handleConfigJsonChange}
         />
@@ -384,7 +524,12 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
           {trainingResult && (
             <>
               <div>Acc: {trainingResult.accuracy}%</div>
-              <div>Recall: ...</div>
+              <div>Recall: {trainingResult.recall}%</div>
+              {modelPath && (
+                <div className="model-path-info">
+                  <small>Model saved at: {modelPath.split('/').pop()}</small>
+                </div>
+              )}
             </>
           )}
         </div>

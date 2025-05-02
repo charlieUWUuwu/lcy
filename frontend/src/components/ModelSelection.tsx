@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './ModelSelection.css';
+import React, { useState, useEffect, useCallback } from 'react';
+import '../styles/ModelSelection.css';
 import { ModelParameters, getDefaultParameters } from './modelConfig';
 
 interface ModelSelectionProps {
@@ -18,10 +18,13 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   configJson,
   onConfigJsonChange
 }) => {
-  // Initialize parameters with default values for the selected model
-  const [parameters, setParameters] = useState<ModelParameters>(
+  // 使用狀態來追蹤參數變化的來源
+  const [internalParameters, setInternalParameters] = useState<ModelParameters>(
     getDefaultParameters(selectedModel)
   );
+  
+  // 使用狀態來追蹤參數變化的來源
+  const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>('init');
 
   const models = [
     { id: 'LSTM', name: 'LSTM' },
@@ -31,57 +34,90 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     { id: 'XGB', name: 'XGBoost' },
   ];
 
-  // Update parent component when parameters change
+  // 當內部參數變化時，通知父組件
   useEffect(() => {
-    if (onParametersChange) {
-      onParametersChange(parameters);
+    // 只有當參數變化來源是 UI 或模型變化時，才通知父組件
+    if (paramChangeSource === 'ui' || paramChangeSource === 'model') {
+      if (onParametersChange) {
+        onParametersChange(internalParameters);
+      }
     }
-    
-    // Update JSON configuration if callback is provided
-    if (onConfigJsonChange) {
-      const config = {
-        modelType: selectedModel,
-        parameters: parameters
-      };
-      onConfigJsonChange(JSON.stringify(config, null, 2));
+  }, [internalParameters, onParametersChange, paramChangeSource]);
+  
+  // 當內部參數或模型類型變化時，更新 JSON 配置
+  useEffect(() => {
+    // 只有當參數變化來源是 UI 或模型變化時，才更新 JSON
+    if ((paramChangeSource === 'ui' || paramChangeSource === 'model') && onConfigJsonChange) {
+      try {
+        // 創建新的配置
+        const newConfig = {
+          modelType: selectedModel,
+          parameters: internalParameters
+        };
+        onConfigJsonChange(JSON.stringify(newConfig, null, 2));
+      } catch (error) {
+        console.error('Error updating JSON configuration:', error);
+      }
     }
-  }, [parameters, onParametersChange, selectedModel, onConfigJsonChange]);
+  }, [internalParameters, selectedModel, onConfigJsonChange, paramChangeSource]);
 
-  // When model changes, update parameters to defaults for that model
+  // 當模型變化時，更新參數為該模型的默認值
   useEffect(() => {
     const newDefaultParams = getDefaultParameters(selectedModel);
-    setParameters(newDefaultParams);
+    setInternalParameters(newDefaultParams);
+    setParamChangeSource('model');
   }, [selectedModel]);
+  
+  // 當從父組件接收到新的 configJson 時，解析並更新內部狀態
+  useEffect(() => {
+    if (configJson && paramChangeSource !== 'ui' && paramChangeSource !== 'model') {
+      try {
+        const config = JSON.parse(configJson);
+        if (config.parameters) {
+          setInternalParameters(config.parameters);
+          setParamChangeSource('json');
+        }
+      } catch (error) {
+        console.error('Error parsing JSON configuration:', error);
+      }
+    }
+  }, [configJson, paramChangeSource]);
 
-  const handleParameterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleParameterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setParameters(prev => ({
+    setInternalParameters(prev => ({
       ...prev,
       [name]: parseFloat(value)
     }));
-  };
+    setParamChangeSource('ui');
+  }, []);
   
-  // Function to handle direct JSON configuration input
-  const handleJsonConfigChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // 處理 JSON 編輯器輸入
+  const handleJsonConfigChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     try {
-      const config = JSON.parse(e.target.value);
-      if (config.modelType && config.parameters) {
-        // Update the model type if it's changed in the JSON
-        if (config.modelType !== selectedModel && onModelChange) {
-          onModelChange(config.modelType);
-        }
-        // Update parameters
-        setParameters(config.parameters);
-      }
-      // Update the raw JSON if callback is provided
+      const jsonValue = e.target.value;
+      const config = JSON.parse(jsonValue);
+      
+      // 直接將 JSON 傳遞給父組件，不經過內部狀態更新
       if (onConfigJsonChange) {
-        onConfigJsonChange(e.target.value);
+        onConfigJsonChange(jsonValue);
+      }
+      
+      // 更新模型類型（如果有變化）
+      if (config.modelType && config.modelType !== selectedModel && onModelChange) {
+        onModelChange(config.modelType);
+      }
+      
+      // 更新參數
+      if (config.parameters) {
+        setInternalParameters(config.parameters);
+        setParamChangeSource('json');
       }
     } catch (error) {
       console.error('Invalid JSON configuration:', error);
-      // Don't update state for invalid JSON
+      // 無效的 JSON 不更新狀態
     }
-  };
+  }, [onConfigJsonChange, selectedModel, onModelChange]);
 
   return (
     <div className="model-selection">
@@ -114,7 +150,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="learningRate"
               name="learningRate"
-              value={parameters.learningRate}
+              value={internalParameters.learningRate}
               onChange={handleParameterChange}
               step="0.0001"
               min="0.0001"
@@ -128,7 +164,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="batchSize"
               name="batchSize"
-              value={parameters.batchSize}
+              value={internalParameters.batchSize}
               onChange={handleParameterChange}
               step="1"
               min="1"
@@ -141,7 +177,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="epochs"
               name="epochs"
-              value={parameters.epochs}
+              value={internalParameters.epochs}
               onChange={handleParameterChange}
               step="1"
               min="1"
@@ -154,7 +190,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="earlyStoppingPatience"
               name="earlyStoppingPatience"
-              value={parameters.earlyStoppingPatience}
+              value={internalParameters.earlyStoppingPatience}
               onChange={handleParameterChange}
               step="1"
               min="0"
@@ -162,7 +198,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           </div>
           
           {/* Model-specific parameters based on the selected model */}
-          {'hiddenLayers' in parameters && (
+          {'hiddenLayers' in internalParameters && (
             <>
               <div className="parameter-group">
                 <label htmlFor="hiddenLayers">Hidden Layers:</label>
@@ -170,7 +206,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="hiddenLayers"
                   name="hiddenLayers"
-                  value={(parameters as any).hiddenLayers}
+                  value={(internalParameters as any).hiddenLayers}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -182,7 +218,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="hiddenUnits"
                   name="hiddenUnits"
-                  value={(parameters as any).hiddenUnits}
+                  value={(internalParameters as any).hiddenUnits}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -194,7 +230,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="dropout"
                   name="dropout"
-                  value={(parameters as any).dropout}
+                  value={(internalParameters as any).dropout}
                   onChange={handleParameterChange}
                   step="0.01"
                   min="0"
@@ -204,7 +240,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
             </>
           )}
           
-          {'kernelSize' in parameters && (
+          {'kernelSize' in internalParameters && (
             <>
               <div className="parameter-group">
                 <label htmlFor="kernelSize">Kernel Size:</label>
@@ -212,7 +248,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="kernelSize"
                   name="kernelSize"
-                  value={(parameters as any).kernelSize}
+                  value={(internalParameters as any).kernelSize}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -224,7 +260,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="filters"
                   name="filters"
-                  value={(parameters as any).filters}
+                  value={(internalParameters as any).filters}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -236,7 +272,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="poolSize"
                   name="poolSize"
-                  value={(parameters as any).poolSize}
+                  value={(internalParameters as any).poolSize}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -245,7 +281,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
             </>
           )}
           
-          {'nEstimators' in parameters && (
+          {'nEstimators' in internalParameters && (
             <>
               <div className="parameter-group">
                 <label htmlFor="nEstimators">N Estimators:</label>
@@ -253,7 +289,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="nEstimators"
                   name="nEstimators"
-                  value={(parameters as any).nEstimators}
+                  value={(internalParameters as any).nEstimators}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -265,34 +301,34 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="maxDepth"
                   name="maxDepth"
-                  value={(parameters as any).maxDepth}
+                  value={(internalParameters as any).maxDepth}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
                 />
               </div>
-              {'minSamplesSplit' in parameters && (
+              {'minSamplesSplit' in internalParameters && (
                 <div className="parameter-group">
                   <label htmlFor="minSamplesSplit">Min Samples Split:</label>
                   <input
                     type="number"
                     id="minSamplesSplit"
                     name="minSamplesSplit"
-                    value={(parameters as any).minSamplesSplit}
+                    value={(internalParameters as any).minSamplesSplit}
                     onChange={handleParameterChange}
                     step="1"
                     min="2"
                   />
                 </div>
               )}
-              {'gamma' in parameters && (
+              {'gamma' in internalParameters && (
                 <div className="parameter-group">
                   <label htmlFor="gamma">Gamma:</label>
                   <input
                     type="number"
                     id="gamma"
                     name="gamma"
-                    value={(parameters as any).gamma}
+                    value={(internalParameters as any).gamma}
                     onChange={handleParameterChange}
                     step="0.01"
                     min="0"
@@ -307,7 +343,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
             <div className="parameter-label">JSON Configuration</div>
             <textarea
               className="json-config-editor"
-              value={configJson || JSON.stringify({ modelType: selectedModel, parameters }, null, 2)}
+              value={configJson || JSON.stringify({ modelType: selectedModel, parameters: internalParameters }, null, 2)}
               onChange={handleJsonConfigChange}
               rows={10}
             />
