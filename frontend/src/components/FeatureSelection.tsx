@@ -1,23 +1,40 @@
 import React from 'react';
+import { SelectionConfig } from './modelConfig';
 
 interface FeatureSelectionProps {
   features: string[];
   selectedFeatures: string[];
   onFeaturesChange: (features: string[]) => void;
+  // For JSON configuration
+  configJson?: string;
+  onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
 }
 
 const FeatureSelection: React.FC<FeatureSelectionProps> = ({
   features,
   selectedFeatures,
   onFeaturesChange,
+  onSelectionConfigChange,
 }) => {
   const handleFeatureToggle = (feature: string) => {
+    let newSelectedFeatures: string[];
+    
     if (selectedFeatures.includes(feature)) {
       // Remove feature if already selected
-      onFeaturesChange(selectedFeatures.filter((f) => f !== feature));
+      newSelectedFeatures = selectedFeatures.filter((f) => f !== feature);
     } else {
       // Add feature if not already selected
-      onFeaturesChange([...selectedFeatures, feature]);
+      newSelectedFeatures = [...selectedFeatures, feature];
+    }
+    
+    // Update the parent component
+    onFeaturesChange(newSelectedFeatures);
+    
+    // Update JSON configuration if callback is provided
+    if (onSelectionConfigChange) {
+      onSelectionConfigChange({
+        selectedFeatures: newSelectedFeatures
+      });
     }
   };
 
