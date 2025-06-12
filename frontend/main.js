@@ -3,23 +3,10 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 let backendProcess;
-let mainWindow;
+const isDev = !app.isPackaged;
 
-app.whenReady().then(() => {
-  const backendPath = path.join(process.resourcesPath, 'backend_server.exe');
-  console.log(`後端路徑:${backendPath}`);
-
-  backendProcess = spawn(backendPath);
-
-  backendProcess.on('error', (error) => {
-    console.error(`後端服務啟動失敗: ${error}`);
-  });
-
-  backendProcess.on('exit', (code, signal) => {
-    console.log(`後端程式退出，退出碼: ${code}, 訊號: ${signal}`);
-  });
-
-  mainWindow = new BrowserWindow({
+function createWindow() {
+  const win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -27,8 +14,36 @@ app.whenReady().then(() => {
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'));
-  mainWindow.webContents.openDevTools(); // 啟動開發人員模式
+  if (isDev) {
+    win.loadURL('http://localhost:5173');
+    
+  } else {
+    win.loadFile(path.join(__dirname, 'build', 'index.html'));
+  }
+  win.webContents.openDevTools();
+}
+
+app.whenReady().then(() => {
+  if (!isDev) {
+    // 打包正式環境，啟動後端
+    const backendPath = path.join(process.resourcesPath, 'backend_server.exe');
+    console.log(`後端路徑: ${backendPath}`);
+
+    backendProcess = spawn(backendPath);
+
+    backendProcess.on('error', (error) => {
+      console.error(`後端服務啟動失敗: ${error}`);
+    });
+
+    backendProcess.on('exit', (code, signal) => {
+      console.log(`後端程式退出，退出碼: ${code}, 訊號: ${signal}`);
+    });
+  } else {
+    // 開發環境可以放這裡的邏輯
+    console.log('開發環境，不啟動後端可執行檔');
+  }
+
+  createWindow();
 });
 
 // 最後一個視窗關閉，就強制要全部退出
