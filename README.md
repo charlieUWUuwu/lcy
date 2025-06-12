@@ -25,7 +25,7 @@
   ```
 - Start the development server and launch Electron
   ```shell
-  # This command starts the Vite development server on port 3000 and launches the Electron app for testing.
+  # This command starts the Vite development server and launches the Electron app for testing.
   npm run dev
   ```
 - Package the project
