@@ -42,11 +42,11 @@ export interface XGBParameters extends BaseModelParameters {
 }
 
 // Union type for all possible model parameters
-export type ModelParameters = 
-  | BaseModelParameters 
-  | LSTMParameters 
-  | CNNParameters 
-  | RFParameters 
+export type ModelParameters =
+  | BaseModelParameters
+  | LSTMParameters
+  | CNNParameters
+  | RFParameters
   | XGBParameters;
 
 // Complete training configuration
@@ -65,7 +65,7 @@ export const defaultParameters: Record<string, ModelParameters> = {
     earlyStoppingPatience: 3,
     hiddenLayers: 2,
     hiddenUnits: 64,
-    dropout: 0.2
+    dropout: 0.2,
   },
   GRU: {
     learningRate: 0.001,
@@ -74,7 +74,7 @@ export const defaultParameters: Record<string, ModelParameters> = {
     earlyStoppingPatience: 3,
     hiddenLayers: 2,
     hiddenUnits: 64,
-    dropout: 0.2
+    dropout: 0.2,
   },
   CNN: {
     learningRate: 0.001,
@@ -83,7 +83,7 @@ export const defaultParameters: Record<string, ModelParameters> = {
     earlyStoppingPatience: 3,
     kernelSize: 3,
     filters: 64,
-    poolSize: 2
+    poolSize: 2,
   },
   RF: {
     learningRate: 0.1,
@@ -92,7 +92,7 @@ export const defaultParameters: Record<string, ModelParameters> = {
     earlyStoppingPatience: 0,
     nEstimators: 100,
     maxDepth: 10,
-    minSamplesSplit: 2
+    minSamplesSplit: 2,
   },
   XGB: {
     learningRate: 0.1,
@@ -101,8 +101,8 @@ export const defaultParameters: Record<string, ModelParameters> = {
     earlyStoppingPatience: 5,
     nEstimators: 100,
     maxDepth: 6,
-    gamma: 0
-  }
+    gamma: 0,
+  },
 };
 
 // Get default parameters for a specific model type

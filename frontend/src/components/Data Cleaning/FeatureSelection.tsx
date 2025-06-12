@@ -19,7 +19,7 @@ const FeatureSelection: React.FC<FeatureSelectionProps> = ({
 }) => {
   const handleFeatureToggle = (feature: string) => {
     let newSelectedFeatures: string[];
-    
+
     if (selectedFeatures.includes(feature)) {
       // Remove feature if already selected
       newSelectedFeatures = selectedFeatures.filter((f) => f !== feature);
@@ -27,14 +27,14 @@ const FeatureSelection: React.FC<FeatureSelectionProps> = ({
       // Add feature if not already selected
       newSelectedFeatures = [...selectedFeatures, feature];
     }
-    
+
     // Update the parent component
     onFeaturesChange(newSelectedFeatures);
-    
+
     // Update JSON configuration if callback is provided
     if (onSelectionConfigChange) {
       onSelectionConfigChange({
-        selectedFeatures: newSelectedFeatures
+        selectedFeatures: newSelectedFeatures,
       });
     }
   };

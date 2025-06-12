@@ -20,7 +20,9 @@ const ModelTraining: React.FC = () => {
     earlyStoppingPatience: 3,
   });
   const [configJson, setConfigJson] = useState<string>('');
-  const [configChangeSource, setConfigChangeSource] = useState<'ui' | 'model' | 'json' | 'init' | 'features'>('init');
+  const [configChangeSource, setConfigChangeSource] = useState<
+    'ui' | 'model' | 'json' | 'init' | 'features'
+  >('init');
   const [isTraining, setIsTraining] = useState<boolean>(false);
 
   useEffect(() => {
@@ -128,8 +130,8 @@ const ModelTraining: React.FC = () => {
               </div>
             </div>
           </div>
-        </div> {/* closes model-selection-section */}
-
+        </div>{' '}
+        {/* closes model-selection-section */}
         <div className="visualization-section">
           <div className="visualization-tabs">
             <div className="tab-headers">
@@ -143,13 +145,13 @@ const ModelTraining: React.FC = () => {
             </div>
           </div>
         </div>
-
         <div className="actions">
           <button className="previous-button" onClick={() => navigate('/data-training')}>
             previous
           </button>
         </div>
-      </div> {/* closes model-training-content */}
+      </div>{' '}
+      {/* closes model-training-content */}
     </div> /* closes model-training-container */
   );
 };

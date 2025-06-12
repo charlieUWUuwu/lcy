@@ -4,8 +4,6 @@
   "version": "0.0.0",
   "type": "commonjs",
   "main": "main.js",
-
-
   "scripts": {
     "start": "vite",
     "electron": "electron main.js",

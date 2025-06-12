@@ -15,11 +15,11 @@ export const trainModel = async (config: string): Promise<any> => {
       },
       body: config,
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error training model:', error);
@@ -44,11 +44,11 @@ export const predictWithModel = async (modelPath: string, inputData: any[]): Pro
         input: inputData,
       }),
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error making prediction:', error);
@@ -64,16 +64,16 @@ export const uploadFile = async (file: File): Promise<any> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const response = await fetch(`${API_BASE_URL}/upload`, {
       method: 'POST',
       body: formData,
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -94,11 +94,11 @@ export const cleanData = async (config: string): Promise<any> => {
       },
       body: config,
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error cleaning data:', error);

@@ -67,7 +67,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   onModelChange,
   onParametersChange,
   configJson,
-  onConfigJsonChange
+  onConfigJsonChange,
 }) => {
   const [internalParameters, setInternalParameters] = useState<ModelParameters>(
     getDefaultParameters(selectedModel),
@@ -98,7 +98,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
       try {
         const newConfig = {
           modelType: selectedModel,
-          parameters: internalParameters
+          parameters: internalParameters,
         };
         onConfigJsonChange(JSON.stringify(newConfig, null, 2));
       } catch (error) {
@@ -129,9 +129,9 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
 
   const handleParameterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInternalParameters(prev => ({
+    setInternalParameters((prev) => ({
       ...prev,
-      [name]: parseFloat(value)
+      [name]: parseFloat(value),
     }));
     setParamChangeSource('ui');
   }, []);
@@ -183,7 +183,6 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           <div className="select-arrow">▼</div>
         </div>
       </div>
-
 
       {selectedModel && (
         <div className="parameter-selection">
@@ -372,13 +371,20 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               )}
             </>
           )}
-          
+
           {/* JSON Configuration Display/Editor */}
           <div className="json-config-section">
             <div className="parameter-label">JSON Configuration</div>
             <textarea
               className="json-config-editor"
-              value={configJson || JSON.stringify({ modelType: selectedModel, parameters: internalParameters }, null, 2)}
+              value={
+                configJson ||
+                JSON.stringify(
+                  { modelType: selectedModel, parameters: internalParameters },
+                  null,
+                  2,
+                )
+              }
               onChange={handleJsonConfigChange}
               rows={10}
             />
