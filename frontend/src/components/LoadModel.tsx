@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import HeatMap from './HeatMap';
-import LineChart from './LineChart';
+import LineChart from './DataCleaning/LineChart';
 
 interface LoadModelProps {
   selectedModel: string | null;

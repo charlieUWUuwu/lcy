@@ -2,11 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { cleanData, trainModel, uploadFile } from '../apiService';
-import FeatureSelection from './FeatureSelection';
-import HeatMap from './HeatMap';
-import LabelSelection from './LabelSelection';
-import LineChart from './LineChart';
-import ModelSelection from './ModelSelection';
+import FeatureSelection from './DataCleaning/FeatureSelection';
+import LabelSelection from './DataCleaning/LabelSelection';
+import LineChart from './DataCleaning/LineChart';
+import ModelSelection from './ModelTraining/ModelSelection';
 import {
   ModelParameters as ConfigModelParameters,
   SelectionConfig,
