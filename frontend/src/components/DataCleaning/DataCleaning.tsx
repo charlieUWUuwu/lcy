@@ -6,18 +6,6 @@ import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 
-// Declare the electronAPI property on the window object
-declare global {
-  interface Window {
-    electronAPI: {
-      loadFile: (options: { extensions: string[] }) => Promise<string>;
-      readFile: (filePath: string) => Promise<string>;
-      saveFile: (options: { defaultPath: string; extensions: string[] }) => Promise<string>;
-      writeFile: (filePath: string, content: string) => Promise<void>;
-    };
-  }
-}
-
 interface DataTrainingProps {
   onModelTrained: (model: string, accuracy: number, recall: number) => void;
 }
@@ -70,6 +58,7 @@ const DataTraining: React.FC<DataTrainingProps> = () => {
     }
   }, [fileData]);
 
+  // 用戶選擇訓練特徵
   const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
     setJsonConfig((prev) => ({
       ...prev,

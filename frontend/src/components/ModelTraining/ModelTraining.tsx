@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import ModelSelection from '../Model Training/ModelSelection';
+import ModelSelection from './ModelSelection';
 import { ModelParameters } from '../modelConfig';
 import './ModelTraining.css';
 
