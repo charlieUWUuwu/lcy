@@ -20,7 +20,7 @@ const ModelTraining: React.FC = () => {
     earlyStoppingPatience: 3,
   });
   const [configJson, setConfigJson] = useState<string>('');
-  const [configChangeSource, setConfigChangeSource] = useState<
+  const [configChangeSource, setConfigChangeSource] = useState
     'ui' | 'model' | 'json' | 'init' | 'features'
   >('init');
   const [isTraining, setIsTraining] = useState<boolean>(false);
@@ -125,11 +125,12 @@ const ModelTraining: React.FC = () => {
 
             <div className="training-results">
               {/* results*/}
-                <div className="placeholder-results">
-                  <p>Training results will appear here</p>
-                </div>
+              <div className="placeholder-results">
+                <p>Training results will appear here</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </div> {/* closes model-selection-section */}
 
         <div className="visualization-section">
           <div className="visualization-tabs">
@@ -150,8 +151,8 @@ const ModelTraining: React.FC = () => {
             previous
           </button>
         </div>
-      </div>
-    </div>
+      </div> {/* closes model-training-content */}
+    </div> /* closes model-training-container */
   );
 };
 
