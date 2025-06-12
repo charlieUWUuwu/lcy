@@ -20,9 +20,7 @@ const ModelTraining: React.FC = () => {
     earlyStoppingPatience: 3,
   });
   const [configJson, setConfigJson] = useState<string>('');
-  const [configChangeSource, setConfigChangeSource] = useState
-    'ui' | 'model' | 'json' | 'init' | 'features'
-  >('init');
+  const [configChangeSource, setConfigChangeSource] = useState<'ui' | 'model' | 'json' | 'init' | 'features'>('init');
   const [isTraining, setIsTraining] = useState<boolean>(false);
 
   useEffect(() => {
