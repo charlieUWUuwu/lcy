@@ -3,17 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "commonjs",
-  "main": "electron.js",
+  "main": "main.js",
+
+
   "scripts": {
     "start": "vite",
-    "electron": "electron .",
+    "electron": "electron main.js",
     "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
     "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
     "format-and-lint": "npm run format && npm run lint",
-    "dev": "concurrently \"vite --port 3000\" \"electron .\"",
-    "preview": "vite preview",
-    "build": "vite build && electron .",
-    "package": "electron-builder"
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && npm run electron\"",
+    "build": "vite build",
+    "package": "electron-builder",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.8",
@@ -59,7 +61,7 @@
     },
     "files": [
       "build/**/*",
-      "electron.js"
+      "./main.js"
     ],
     "extraResources": [
       {
