@@ -46,15 +46,6 @@ interface TrainingResult {
 
 // Using the imported type instead of redefining it
 type ModelParameters = ConfigModelParameters;
-interface CorrelationData {
-  features: string[];
-  matrix: number[][];
-}
-
-interface ProcessedFileData {
-  headers: string[];
-  rows: Record<string, number>[];
-}
 
 const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
   const navigate = useNavigate();
@@ -116,7 +107,6 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
 
   const [isTraining, setIsTraining] = useState<boolean>(false);
   const [trainingResult, setTrainingResult] = useState<TrainingResult | null>(null);
-  const [correlationData, setCorrelationData] = useState<CorrelationData | null>(null);
   const [modelPath, setModelPath] = useState<string>('');
 
   // Handle file import
@@ -183,13 +173,11 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
 
           // 設置相關性數據（如果後端提供）
           if (response.data.correlationMatrix) {
-            setCorrelationData({
-              features: processedData.headers,
-              matrix: response.data.correlationMatrix,
-            });
-          } else {
-            // 如果後端沒有提供，則在前端生成
-            setCorrelationData(generateCorrelationMatrix(processedData));
+            // TODO: 設置後端回傳的 base64 編碼的相關性矩陣圖片
+
+          } 
+          else { // 如果後端沒有提供，則在前端生成
+            // TODO: 設置"無資料訊息"給用戶
           }
         }
       } catch (uploadError) {
@@ -219,9 +207,6 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
             selectedLabel: processedData.headers[1],
           });
         }
-
-        // 生成相關性數據
-        setCorrelationData(generateCorrelationMatrix(processedData));
       }
     } catch (error) {
       console.error('Error importing file:', error);
@@ -255,25 +240,6 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     };
   };
 
-  // Generate correlation matrix (mock implementation)
-  const generateCorrelationMatrix = (data: ProcessedFileData): CorrelationData => {
-    const features = data.headers;
-    const matrix = [];
-
-    for (let i = 0; i < features.length; i++) {
-      const row = [];
-      for (let j = 0; j < features.length; j++) {
-        // Generate random correlation values for demo
-        row.push(Math.random() * 2 - 1); // Values between -1 and 1
-      }
-      matrix.push(row);
-    }
-
-    return {
-      features,
-      matrix,
-    };
-  };
 
   // Handle data cleaning
   const handleDataCleaning = async () => {
@@ -559,11 +525,7 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
         </div>
 
         <div className="tab-content">
-          {correlationData ? (
-            <HeatMap data={correlationData} title="Correlation Coefficient" />
-          ) : (
             <div className="placeholder">No correlation data available</div>
-          )}
         </div>
       </div>
 

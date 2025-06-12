@@ -53,20 +53,6 @@ interface ProductionData {
   [key: string]: unknown;
 }
 
-// 確保 window.electronAPI 類型定義
-declare global {
-  interface Window {
-    electronAPI: {
-      loadFile: (options: { extensions: string[] }) => Promise<string>;
-      readFile: (filePath: string) => Promise<string>;
-      saveFile: (options: { defaultPath: string; extensions: string[] }) => Promise<string>;
-      writeFile: (filePath: string, content: string) => Promise<void>;
-      getProductionData: () => Promise<void>;
-      onDataUpdate: (callback: (data: ProductionData) => void) => void;
-    };
-  }
-}
-
 const LoadModel: React.FC<LoadModelProps> = ({
   // selectedModel,
   // modelAccuracy,
@@ -265,7 +251,7 @@ const LoadModel: React.FC<LoadModelProps> = ({
 
         <div className="tab-content">
           {activeTab === 'feature' && correlationData ? (
-            <HeatMap data={correlationData} title="Correlation Coefficient" />
+            <p>heap map png...</p>
           ) : activeTab === 'prediction' && predictionData ? (
             <LineChart data={predictionData} />
           ) : (
