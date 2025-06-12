@@ -10,7 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
     "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
     "format-and-lint": "npm run format && npm run lint",
-    "dev": "vite --port 3000 && npm run electron",
+    "dev": "concurrently \"vite --port 3000\" \"electron .\"",
     "preview": "vite preview",
     "build": "vite build && electron .",
     "package": "electron-builder"

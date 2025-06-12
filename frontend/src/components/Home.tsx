@@ -13,9 +13,6 @@ const Home: React.FC = () => {
         <button className="action-button" onClick={() => navigate('/data-training')}>
           Start Data Training
         </button>
-        <button className="action-button" onClick={() => navigate('/load-model')}>
-          Load Existing Model
-        </button>
       </div>
     </div>
   );

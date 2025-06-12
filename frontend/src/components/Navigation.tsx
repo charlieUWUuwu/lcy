@@ -19,10 +19,13 @@ const Navigation: React.FC<NavigationProps> = ({ selectedModel, modelAccuracy })
         to="/data-training"
         className={`nav-item ${isActive('/data-training') ? 'active' : ''}`}
       >
-        data training
+        Data Cleaning
       </NavLink>
-      <NavLink to="/load-model" className={`nav-item ${isActive('/load-model') ? 'active' : ''}`}>
-        load model
+      <NavLink
+        to="/model-training"
+        className={`nav-item ${isActive('/model-training') ? 'active' : ''}`}
+      >
+        Model Training
       </NavLink>
 
       {selectedModel && modelAccuracy && (

@@ -340,12 +340,6 @@ body {
   cursor: not-allowed;
 }
 
-.training-results {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-left: auto;
-}
 
 .visualization-tabs {
   border: 1px solid #ddd;

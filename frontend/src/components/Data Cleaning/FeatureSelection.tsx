@@ -1,5 +1,6 @@
 import React from 'react';
-import { SelectionConfig } from './modelConfig';
+
+import { SelectionConfig } from '../modelConfig';
 
 interface FeatureSelectionProps {
   features: string[];

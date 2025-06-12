@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
 import '../styles/ModelSelection.css';
 import { ModelParameters, getDefaultParameters } from './modelConfig';
+=======
+import '../../styles/ModelSelection.css';
+import { ModelParameters, getDefaultParameters } from '../modelConfig';
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
 
 interface ModelSelectionProps {
   selectedModel: string;
@@ -11,6 +17,56 @@ interface ModelSelectionProps {
   onConfigJsonChange?: (configJson: string) => void;
 }
 
+// Type guards to check parameter types safely
+const hasNeuralNetworkParams = (
+  params: ModelParameters,
+): params is ModelParameters & {
+  hiddenLayers: number;
+  hiddenUnits: number;
+  dropout: number;
+} => {
+  return 'hiddenLayers' in params && 'hiddenUnits' in params && 'dropout' in params;
+};
+
+const hasCNNParams = (
+  params: ModelParameters,
+): params is ModelParameters & {
+  kernelSize: number;
+  filters: number;
+  poolSize: number;
+} => {
+  return 'kernelSize' in params && 'filters' in params && 'poolSize' in params;
+};
+
+const hasTreeParams = (
+  params: ModelParameters,
+): params is ModelParameters & {
+  nEstimators: number;
+  maxDepth: number;
+} => {
+  return 'nEstimators' in params && 'maxDepth' in params;
+};
+
+const hasRandomForestParams = (
+  params: ModelParameters,
+): params is ModelParameters & {
+  nEstimators: number;
+  maxDepth: number;
+  minSamplesSplit: number;
+} => {
+  return hasTreeParams(params) && 'minSamplesSplit' in params;
+};
+
+const hasXGBoostParams = (
+  params: ModelParameters,
+): params is ModelParameters & {
+  nEstimators: number;
+  maxDepth: number;
+  gamma: number;
+} => {
+  return hasTreeParams(params) && 'gamma' in params;
+};
+
 const ModelSelection: React.FC<ModelSelectionProps> = ({
   selectedModel,
   onModelChange,
@@ -18,13 +74,22 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   configJson,
   onConfigJsonChange
 }) => {
-  // 使用狀態來追蹤參數變化的來源
   const [internalParameters, setInternalParameters] = useState<ModelParameters>(
-    getDefaultParameters(selectedModel)
+    getDefaultParameters(selectedModel),
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
   );
   
   // 使用狀態來追蹤參數變化的來源
-  const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>('init');
+  const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>(
+    'init',
+  );
+=======
+  );
+
+  const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>(
+    'init',
+  );
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
 
   const models = [
     { id: 'LSTM', name: 'LSTM' },
@@ -34,22 +99,21 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     { id: 'XGB', name: 'XGBoost' },
   ];
 
-  // 當內部參數變化時，通知父組件
   useEffect(() => {
-    // 只有當參數變化來源是 UI 或模型變化時，才通知父組件
     if (paramChangeSource === 'ui' || paramChangeSource === 'model') {
       if (onParametersChange) {
         onParametersChange(internalParameters);
       }
     }
   }, [internalParameters, onParametersChange, paramChangeSource]);
-  
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
   // 當內部參數或模型類型變化時，更新 JSON 配置
+=======
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
   useEffect(() => {
-    // 只有當參數變化來源是 UI 或模型變化時，才更新 JSON
     if ((paramChangeSource === 'ui' || paramChangeSource === 'model') && onConfigJsonChange) {
       try {
-        // 創建新的配置
         const newConfig = {
           modelType: selectedModel,
           parameters: internalParameters
@@ -61,14 +125,16 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     }
   }, [internalParameters, selectedModel, onConfigJsonChange, paramChangeSource]);
 
-  // 當模型變化時，更新參數為該模型的默認值
   useEffect(() => {
     const newDefaultParams = getDefaultParameters(selectedModel);
     setInternalParameters(newDefaultParams);
     setParamChangeSource('model');
   }, [selectedModel]);
-  
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
   // 當從父組件接收到新的 configJson 時，解析並更新內部狀態
+=======
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
   useEffect(() => {
     if (configJson && paramChangeSource !== 'ui' && paramChangeSource !== 'model') {
       try {
@@ -91,33 +157,42 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     }));
     setParamChangeSource('ui');
   }, []);
-  
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
   // 處理 JSON 編輯器輸入
-  const handleJsonConfigChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    try {
-      const jsonValue = e.target.value;
-      const config = JSON.parse(jsonValue);
-      
-      // 直接將 JSON 傳遞給父組件，不經過內部狀態更新
-      if (onConfigJsonChange) {
-        onConfigJsonChange(jsonValue);
+=======
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
+  const handleJsonConfigChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      try {
+        const jsonValue = e.target.value;
+        const config = JSON.parse(jsonValue);
+
+        // 直接將 JSON 傳遞給父組件，不經過內部狀態更新
+        if (onConfigJsonChange) {
+          onConfigJsonChange(jsonValue);
+        }
+
+        // 更新模型類型（如果有變化）
+        if (config.modelType && config.modelType !== selectedModel && onModelChange) {
+          onModelChange(config.modelType);
+        }
+
+        // 更新參數
+        if (config.parameters) {
+          setInternalParameters(config.parameters);
+          setParamChangeSource('json');
+        }
+      } catch (error) {
+        console.error('Invalid JSON configuration:', error);
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
+        // 無效的 JSON 不更新狀態
+=======
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
       }
-      
-      // 更新模型類型（如果有變化）
-      if (config.modelType && config.modelType !== selectedModel && onModelChange) {
-        onModelChange(config.modelType);
-      }
-      
-      // 更新參數
-      if (config.parameters) {
-        setInternalParameters(config.parameters);
-        setParamChangeSource('json');
-      }
-    } catch (error) {
-      console.error('Invalid JSON configuration:', error);
-      // 無效的 JSON 不更新狀態
-    }
-  }, [onConfigJsonChange, selectedModel, onModelChange]);
+    },
+    [onConfigJsonChange, selectedModel, onModelChange],
+  );
 
   return (
     <div className="model-selection">
@@ -143,20 +218,6 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
       {selectedModel && (
         <div className="parameter-selection">
           <div className="parameter-label">model parameters</div>
-
-          <div className="parameter-group">
-            <label htmlFor="learningRate">Learning Rate:</label>
-            <input
-              type="number"
-              id="learningRate"
-              name="learningRate"
-              value={internalParameters.learningRate}
-              onChange={handleParameterChange}
-              step="0.0001"
-              min="0.0001"
-              max="1"
-            />
-          </div>
 
           <div className="parameter-group">
             <label htmlFor="batchSize">Batch Size:</label>
@@ -196,9 +257,14 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               min="0"
             />
           </div>
-          
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
           {/* Model-specific parameters based on the selected model */}
           {'hiddenLayers' in internalParameters && (
+=======
+          {/* Neural Network specific parameters (LSTM, GRU) */}
+          {hasNeuralNetworkParams(internalParameters) && (
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
             <>
               <div className="parameter-group">
                 <label htmlFor="hiddenLayers">Hidden Layers:</label>
@@ -206,7 +272,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="hiddenLayers"
                   name="hiddenLayers"
-                  value={(internalParameters as any).hiddenLayers}
+                  value={internalParameters.hiddenLayers}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -218,7 +284,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="hiddenUnits"
                   name="hiddenUnits"
-                  value={(internalParameters as any).hiddenUnits}
+                  value={internalParameters.hiddenUnits}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -230,7 +296,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="dropout"
                   name="dropout"
-                  value={(internalParameters as any).dropout}
+                  value={internalParameters.dropout}
                   onChange={handleParameterChange}
                   step="0.01"
                   min="0"
@@ -239,8 +305,13 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               </div>
             </>
           )}
-          
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
           {'kernelSize' in internalParameters && (
+=======
+          {/* CNN specific parameters */}
+          {hasCNNParams(internalParameters) && (
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
             <>
               <div className="parameter-group">
                 <label htmlFor="kernelSize">Kernel Size:</label>
@@ -248,7 +319,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="kernelSize"
                   name="kernelSize"
-                  value={(internalParameters as any).kernelSize}
+                  value={internalParameters.kernelSize}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -260,7 +331,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="filters"
                   name="filters"
-                  value={(internalParameters as any).filters}
+                  value={internalParameters.filters}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -272,7 +343,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="poolSize"
                   name="poolSize"
-                  value={(internalParameters as any).poolSize}
+                  value={internalParameters.poolSize}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -280,8 +351,13 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               </div>
             </>
           )}
-          
+
+<<<<<<< HEAD:frontend/src/components/ModelSelection.tsx
           {'nEstimators' in internalParameters && (
+=======
+          {/* Tree-based model parameters (Random Forest, XGBoost) */}
+          {hasTreeParams(internalParameters) && (
+>>>>>>> e5d3b2e (refactor: separate data cleaning and model training UI with enhanced feature selection):frontend/src/components/Model Training/ModelSelection.tsx
             <>
               <div className="parameter-group">
                 <label htmlFor="nEstimators">N Estimators:</label>
@@ -289,7 +365,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="nEstimators"
                   name="nEstimators"
-                  value={(internalParameters as any).nEstimators}
+                  value={internalParameters.nEstimators}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
@@ -301,34 +377,36 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
                   type="number"
                   id="maxDepth"
                   name="maxDepth"
-                  value={(internalParameters as any).maxDepth}
+                  value={internalParameters.maxDepth}
                   onChange={handleParameterChange}
                   step="1"
                   min="1"
                 />
               </div>
-              {'minSamplesSplit' in internalParameters && (
+              {/* Random Forest specific parameter */}
+              {hasRandomForestParams(internalParameters) && (
                 <div className="parameter-group">
                   <label htmlFor="minSamplesSplit">Min Samples Split:</label>
                   <input
                     type="number"
                     id="minSamplesSplit"
                     name="minSamplesSplit"
-                    value={(internalParameters as any).minSamplesSplit}
+                    value={internalParameters.minSamplesSplit}
                     onChange={handleParameterChange}
                     step="1"
                     min="2"
                   />
                 </div>
               )}
-              {'gamma' in internalParameters && (
+              {/* XGBoost specific parameter */}
+              {hasXGBoostParams(internalParameters) && (
                 <div className="parameter-group">
                   <label htmlFor="gamma">Gamma:</label>
                   <input
                     type="number"
                     id="gamma"
                     name="gamma"
-                    value={(internalParameters as any).gamma}
+                    value={internalParameters.gamma}
                     onChange={handleParameterChange}
                     step="0.01"
                     min="0"

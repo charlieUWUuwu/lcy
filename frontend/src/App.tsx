@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
-import DataTraining from './components/DataTraining';
+import DataTraining from './components/Data Cleaning/DataCleaning';
 import Home from './components/Home';
-import LoadModel from './components/LoadModel';
+import ModelTraining from './components/Model Training/ModelTraining';
+// import LoadModel from './components/LoadModel';
 import Navigation from './components/Navigation';
 import './index.css';
 
 const App: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
-  const [modelRecall, setModelRecall] = useState<number | null>(null);
 
   return (
     <Router>
@@ -31,21 +31,7 @@ const App: React.FC = () => {
                 />
               }
             />
-            <Route
-              path="/load-model"
-              element={
-                <LoadModel
-                  selectedModel={selectedModel}
-                  modelAccuracy={modelAccuracy}
-                  modelRecall={modelRecall}
-                  onModelLoaded={(model, accuracy, recall) => {
-                    setSelectedModel(model);
-                    setModelAccuracy(accuracy);
-                    setModelRecall(recall);
-                  }}
-                />
-              }
-            />
+            <Route path="/model-training" element={<ModelTraining />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
