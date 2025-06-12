@@ -9,7 +9,7 @@
   - [Simple React Snippets](https://marketplace.visualstudio.com/items?itemName=burkeholland.simple-react-snippets)
   - [ES7+ React/Redux/React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets)
 
-## Development
+## Development(Frontend)
 
 - Clone this repo
   ```shell
@@ -50,7 +50,7 @@
    ```shell
    git checkout -b <NEW_BRANCH_NAME>
    ```
-3. 編輯完成後，格式化並檢查程式碼
+3. (前端)編輯完成後，格式化並檢查程式碼
    ```shell
    npm run format-and-lint
    ```
