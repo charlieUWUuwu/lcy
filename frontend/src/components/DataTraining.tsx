@@ -2,18 +2,18 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { cleanData, trainModel, uploadFile } from '../apiService';
+import {
+  ModelParameters as ConfigModelParameters,
+  Dataset,
+  FileData,
+  SelectionConfig,
+  TrainingConfig,
+  TrainingResult,
+} from '../types';
 import FeatureSelection from './DataCleaning/FeatureSelection';
 import LabelSelection from './DataCleaning/LabelSelection';
 import LineChart from './DataCleaning/LineChart';
 import ModelSelection from './ModelTraining/ModelSelection';
-import {
-  Dataset,
-  FileData,
-  TrainingResult,
-  ModelParameters as ConfigModelParameters,
-  SelectionConfig,
-  TrainingConfig,
-} from '../types';
 
 interface DataTrainingProps {
   onModelTrained: (model: string, accuracy: number, recall: number) => void;
@@ -149,9 +149,8 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
           // 設置相關性數據（如果後端提供）
           if (response.data.correlationMatrix) {
             // TODO: 設置後端回傳的 base64 編碼的相關性矩陣圖片
-
-          } 
-          else { // 如果後端沒有提供，則在前端生成
+          } else {
+            // 如果後端沒有提供，則在前端生成
             // TODO: 設置"無資料訊息"給用戶
           }
         }
@@ -215,7 +214,6 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
     };
   };
 
-
   // Handle data cleaning
   const handleDataCleaning = async () => {
     if (!dataset) {
@@ -247,14 +245,14 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
         });
 
         // 更新相關性數據（如果後端提供）
-        if (response.data.correlationMatrix) {
-          setCorrelationData({
-            features: cleanedData.headers,
-            matrix: response.data.correlationMatrix,
-          });
-        }
+        // if (response.data.correlationMatrix) {
+        //   setCorrelationData({
+        //     features: cleanedData.headers,
+        //     matrix: response.data.correlationMatrix,
+        //   });
+        // }
 
-        alert('Data cleaning completed successfully');
+        // alert('Data cleaning completed successfully');
       }
     } catch (error) {
       console.error('Error during data cleaning:', error);
@@ -500,7 +498,7 @@ const DataTraining: React.FC<DataTrainingProps> = ({ onModelTrained }) => {
         </div>
 
         <div className="tab-content">
-            <div className="placeholder">No correlation data available</div>
+          <div className="placeholder">No correlation data available</div>
         </div>
       </div>
 
