@@ -40,7 +40,7 @@
 
 ## How to maintain this repo
 
-每次增修內容前請依循下列流程進行：
+### 首次增修內容前，請依循下列流程進行：
 
 1. Pull origin/develop 最新版本
    ```shell
@@ -50,23 +50,29 @@
    ```shell
    git checkout -b <NEW_BRANCH_NAME>
    ```
-3. (前端)編輯完成後，格式化並檢查程式碼
+
+### 繼續增修內容，請依循下列流程進行：
+1. 切換到自己的開發分支，進行開發
+   ```shell
+   git checkout <NEW_BRANCH_NAME>
+   ```   
+2. (前端)編輯完成後，格式化並檢查程式碼
    ```shell
    npm run format-and-lint
    ```
-4. 沒問題的話，進行 commit
+3. 沒問題的話，進行 commit
    ```shell
    git add .
    git commit -m "COMMIT_MSG"
    ```
-5. 回到 develop 再次獲取 origin/develop 的最新版本、與自己的修正合併並修正出現的 conflict
+4. 回到 develop 再次獲取 origin/develop 的最新版本、與自己的修正合併並修正出現的 conflict
    ```shell
    git checkout develop
    git pull
    git checkout <NEW_BRANCH_NAME>
    git rebase develop
    ```
-6. 將新 branch 的修正與 develop 合併並 push 到 Github
+5. 將新 branch 的修正與 develop 合併並 push 到 Github
    ```shell
    git checkout develop
    git merge <NEW_BRANCH_NAME>
