@@ -146,7 +146,7 @@ const ModelTraining: React.FC = () => {
           </div>
         </div>
         <div className="actions">
-          <button className="previous-button" onClick={() => navigate('/data-training')}>
+          <button className="previous-button" onClick={() => navigate('/data-cleaning')}>
             previous
           </button>
         </div>

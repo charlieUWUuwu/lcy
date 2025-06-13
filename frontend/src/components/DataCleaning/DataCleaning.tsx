@@ -6,11 +6,11 @@ import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 
-interface DataTrainingProps {
+interface DataCleaningProps {
   onModelTrained: (model: string, accuracy: number, recall: number) => void;
 }
 
-const DataTraining: React.FC<DataTrainingProps> = () => {
+const DataCleaning: React.FC<DataCleaningProps> = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,7 +136,7 @@ const DataTraining: React.FC<DataTrainingProps> = () => {
   };
 
   return (
-    <div className="data-training-container">
+    <div className="data-cleaning-container">
       <div className="header">
         <div>
           <input
@@ -198,4 +198,4 @@ const DataTraining: React.FC<DataTrainingProps> = () => {
   );
 };
 
-export default DataTraining;
+export default DataCleaning;

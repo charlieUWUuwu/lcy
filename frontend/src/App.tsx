@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
-import DataTraining from './components/DataCleaning/DataCleaning';
+import DataCleaning from './components/DataCleaning/DataCleaning';
 import Home from './components/Home';
 import ModelTraining from './components/ModelTraining/ModelTraining';
 import Navigation from './components/Navigation';

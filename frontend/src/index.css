@@ -167,8 +167,8 @@ body {
   background-color: #e0e0e0;
 }
 
-/* Data Training Page */
-.data-training-container {
+/* Data Cleaning Page */
+.data-cleaning-container {
   display: flex;
   flex-direction: column;
   gap: 20px;

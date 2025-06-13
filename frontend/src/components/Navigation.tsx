@@ -11,8 +11,8 @@ const Navigation: React.FC = () => {
         Home
       </NavLink>
       <NavLink
-        to="/data-training"
-        className={`nav-item ${isActive('/data-training') ? 'active' : ''}`}
+        to="/data-cleaning"
+        className={`nav-item ${isActive('/data-cleaning') ? 'active' : ''}`}
       >
         Data Cleaning
       </NavLink>
