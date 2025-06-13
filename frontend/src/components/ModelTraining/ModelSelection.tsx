@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
-import '../../styles/ModelSelection.css';
+import './ModelSelection.css';
 import { ModelParameters, getDefaultParameters } from '../../types';
 
 interface ModelSelectionProps {
