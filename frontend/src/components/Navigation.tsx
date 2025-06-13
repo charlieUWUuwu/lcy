@@ -1,12 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
-interface NavigationProps {
-  selectedModel: string | null;
-  modelAccuracy: number | null;
-}
-
-const Navigation: React.FC<NavigationProps> = ({ selectedModel, modelAccuracy }) => {
+const Navigation: React.FC = () => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
@@ -27,14 +22,6 @@ const Navigation: React.FC<NavigationProps> = ({ selectedModel, modelAccuracy })
       >
         Model Training
       </NavLink>
-
-      {selectedModel && modelAccuracy && (
-        <div className="model-info">
-          <p>Model: {selectedModel}</p>
-          <p>Acc: {modelAccuracy}%</p>
-          <p>Recall: ...</p>
-        </div>
-      )}
     </nav>
   );
 };

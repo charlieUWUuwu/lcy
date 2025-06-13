@@ -14,7 +14,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="app-container">
-        <Navigation selectedModel={selectedModel} modelAccuracy={modelAccuracy} />
+        <Navigation />
         <div className="content-container">
           <Routes>
             <Route path="/" element={<Home />} />
