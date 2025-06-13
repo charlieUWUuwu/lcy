@@ -21,7 +21,7 @@ function createWindow() {
     win.loadURL('http://localhost:5173');
     console.log('開發環境，載入本地伺服器');
   } else {
-    win.loadFile(path.join(__dirname, 'build', 'index.html'));
+    win.loadFile(path.join(__dirname, '..', 'build', 'index.html'));
     console.log('正式環境，載入打包後的前端檔案');
   }
   win.webContents.openDevTools();
