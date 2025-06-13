@@ -1,8 +1,6 @@
 import {
   CategoryScale,
-  ChartData,
   Chart as ChartJS,
-  ChartOptions,
   Legend,
   LineElement,
   LinearScale,
@@ -10,68 +8,84 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Line } from 'react-chartjs-2';
 
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+import { ProcessedFileData } from '../../types/';
 
-interface LineChartProps {
-  data: ChartData<'line'>;
-  options?: ChartOptions<'line'>;
-  height?: number;
-}
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
-const LineChart: React.FC<LineChartProps> = ({ data, options, height = 300 }) => {
-  const chartRef = useRef<ChartJS<'line'>>(null);
+type Props = {
+  fileData: ProcessedFileData;
+};
 
-  // Default chart options
-  const defaultOptions: ChartOptions<'line'> = {
+const getChartData = (fileData: ProcessedFileData) => {
+  const { timestamps, features, values } = fileData;
+
+  const datasets = features.map((feature, featureIndex) => {
+    const data = timestamps.map((_, i) => {
+      const valueIndex = i + featureIndex * timestamps.length;
+      return values[valueIndex];
+    });
+
+    const color = `hsl(${(featureIndex * 60) % 360}, 70%, 50%)`; // 彩色區分
+
+    return {
+      label: feature,
+      data,
+      fill: false,
+      borderColor: color,
+      tension: 0.2,
+    };
+  });
+
+  return {
+    labels: timestamps,
+    datasets,
+  };
+};
+
+const LineChart: React.FC<Props> = ({ fileData }) => {
+  if (!fileData.timestamps.length || !fileData.features.length) {
+    return <div>檔案內無資料</div>;
+  }
+
+  const chartData = getChartData(fileData);
+
+  const options = {
     responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 500,
-    },
     plugins: {
       legend: {
-        position: 'bottom',
+        position: 'top' as const,
       },
       title: {
-        display: false,
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
+        display: true,
+        text: fileData.name,
       },
     },
     interaction: {
-      mode: 'nearest',
-      axis: 'x',
+      mode: 'index' as const,
       intersect: false,
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: '時間',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: '數值',
+        },
+      },
     },
   };
 
-  // Combine default options with custom options
-  const chartOptions = {
-    ...defaultOptions,
-    ...options,
-  };
-
-  // Update chart when data changes
-  useEffect(() => {
-    if (chartRef.current) {
-      chartRef.current.update();
-    }
-  }, [data]);
-
   return (
-    <div style={{ height, width: '100%' }}>
-      <Line ref={chartRef} data={data} options={chartOptions} />
+    <div className="w-full h-full flex justify-center items-center overflow-auto">
+      <Line data={chartData} options={options} />
     </div>
   );
 };

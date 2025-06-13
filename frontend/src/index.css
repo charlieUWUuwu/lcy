@@ -22,13 +22,13 @@ a:hover {
   color: #535bf2;
 }
 
-body {
+/* body {
   margin: 0;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-}
+} */
 
 h1 {
   font-size: 3.2em;
@@ -201,6 +201,12 @@ body {
 .main-content {
   display: flex;
   gap: 20px;
+}
+
+.chart-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 圖表與控制區之間的距離 */
 }
 
 .chart-container {
