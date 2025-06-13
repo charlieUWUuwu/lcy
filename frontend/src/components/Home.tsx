@@ -10,7 +10,7 @@ const Home: React.FC = () => {
         <h1 className="logo">LCY</h1>
       </div>
       <div className="button-container">
-        <button className="action-button" onClick={() => navigate('/data-training')}>
+        <button className="action-button" onClick={() => navigate('/data-cleaning')}>
           Start Data Training
         </button>
       </div>

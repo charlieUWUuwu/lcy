@@ -19,9 +19,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
-              path="/data-training"
+              path="/data-cleaning"
               element={
-                <DataTraining
+                <DataCleaning
                   onModelTrained={(model, accuracy, recall) => {
                     setSelectedModel(model);
                     setModelAccuracy(accuracy);
