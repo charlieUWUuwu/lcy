@@ -7,41 +7,16 @@ import LabelSelection from './DataCleaning/LabelSelection';
 import LineChart from './DataCleaning/LineChart';
 import ModelSelection from './ModelTraining/ModelSelection';
 import {
+  Dataset,
+  FileData,
+  TrainingResult,
   ModelParameters as ConfigModelParameters,
   SelectionConfig,
   TrainingConfig,
-} from './modelConfig';
-
-// Declare the electronAPI property on the window object
-declare global {
-  interface Window {
-    electronAPI: {
-      loadFile: (options: { extensions: string[] }) => Promise<string>;
-      readFile: (filePath: string) => Promise<string>;
-      saveFile: (options: { defaultPath: string; extensions: string[] }) => Promise<string>;
-      writeFile: (filePath: string, content: string) => Promise<void>;
-    };
-  }
-}
+} from '../types';
 
 interface DataTrainingProps {
   onModelTrained: (model: string, accuracy: number, recall: number) => void;
-}
-
-interface FileData {
-  name: string;
-  path: string;
-  content?: string;
-}
-
-interface Dataset {
-  features: string[];
-  data: number[][];
-}
-
-interface TrainingResult {
-  accuracy: number;
-  recall: number;
 }
 
 // Using the imported type instead of redefining it

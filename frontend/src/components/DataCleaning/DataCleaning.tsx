@@ -1,27 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { SelectionConfig } from '../modelConfig';
+import { Dataset, ProcessedFileData, SelectionConfig } from '../../types';
 import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 
 interface DataTrainingProps {
   onModelTrained: (model: string, accuracy: number, recall: number) => void;
-}
-
-interface Dataset {
-  features: string[];
-  data: number[][];
-}
-
-// Using the imported type instead of redefining it
-
-interface ProcessedFileData {
-  name: string;
-  features: string[];
-  timestamps: string[];
-  values: number[];
 }
 
 const DataTraining: React.FC<DataTrainingProps> = () => {

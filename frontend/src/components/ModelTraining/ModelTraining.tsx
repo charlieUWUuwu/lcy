@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ModelParameters } from '../../types';
 import ModelSelection from './ModelSelection';
-import { ModelParameters } from '../modelConfig';
 import './ModelTraining.css';
 
-interface TrainingResult {
-  accuracy: number;
-  recall: number;
-}
+// interface TrainingResult {
+//   accuracy: number;
+//   recall: number;
+// }
 
 const ModelTraining: React.FC = () => {
   const navigate = useNavigate();
