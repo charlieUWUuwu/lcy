@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
-import DataTraining from './components/Data Cleaning/DataCleaning';
+import DataCleaning from './components/Data Cleaning/DataCleaning';
 import Home from './components/Home';
 import ModelTraining from './components/Model Training/ModelTraining';
 // import LoadModel from './components/LoadModel';
@@ -20,9 +20,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
-              path="/data-training"
+              path="/data-cleaning"
               element={
-                <DataTraining
+                <DataCleaning
                   onModelTrained={(model, accuracy, recall) => {
                     setSelectedModel(model);
                     setModelAccuracy(accuracy);
