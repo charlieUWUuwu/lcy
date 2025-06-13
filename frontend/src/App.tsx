@@ -4,7 +4,6 @@ import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 import DataTraining from './components/DataCleaning/DataCleaning';
 import Home from './components/Home';
 import ModelTraining from './components/ModelTraining/ModelTraining';
-// import LoadModel from './components/LoadModel';
 import Navigation from './components/Navigation';
 import './index.css';
 
