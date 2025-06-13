@@ -3,10 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "commonjs",
-  "main": "main.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "vite",
-    "electron": "electron main.js",
+    "electron": "electron electron/main.js",
     "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
     "format": "prettier --write \"./**/*.{html,vue,ts,tsx,js,json,md}\"",
     "format-and-lint": "npm run format && npm run lint",
@@ -51,6 +51,7 @@
     "vite": "^6.1.0",
     "wait-on": "^8.0.3"
   },
+  "typings": "electron/global.d.ts",
   "build": {
     "appId": "com.lcy.id",
     "productName": "Lcy",
@@ -59,7 +60,7 @@
     },
     "files": [
       "build/**/*",
-      "./main.js"
+      "electron/**/*"
     ],
     "extraResources": [
       {

@@ -1,4 +1,5 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const fs = require('fs').promises;
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -10,7 +11,9 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
+      preload: path.join(__dirname, 'preload.js'), // 改直接使用 preload.js ?
+      contextIsolation: true,
+      nodeIntegration: false,
     },
   });
 
@@ -74,4 +77,18 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// 處理 IPC 事件
+ipcMain.handle('dialog:openCSV', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'CSV Files', extensions: ['csv'] }],
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('file:readCSV', async (_, filePath) => {
+  const content = await fs.readFile(filePath, 'utf-8');
+  return content;
 });
