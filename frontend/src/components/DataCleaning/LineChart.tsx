@@ -72,7 +72,7 @@ const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
         position: 'top' as const,
       },
       title: {
-        display: true,
+        display: false,
         text: fileData.name,
       },
     },
