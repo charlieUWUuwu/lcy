@@ -35,6 +35,11 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
       return;
     }
 
+    // 清空狀態（清除圖表與特徵選擇）
+    setFileData(null);
+    setSelectedFeatures([]);
+    setSelectedLabel(null);
+
     const fileContent = await window.electronAPI.readCSV(filePath);
     const lines = fileContent.split(/\r?\n/).filter((line) => line.trim() !== '');
     if (lines.length === 0) return;
