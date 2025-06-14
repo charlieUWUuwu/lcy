@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Dataset, ProcessedFileData, SelectionConfig } from '../../types';
+import { ProcessedFileData, SelectionConfig } from '../../types';
 import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
@@ -15,33 +15,8 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
 
   // State declarations
   const [fileData, setFileData] = useState<ProcessedFileData | null>(null);
-  const [dataset, setDataset] = useState<Dataset | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-
-  // Update dataset when fileData changes
-  useEffect(() => {
-    if (fileData) {
-      // Convert fileData to dataset format
-      const data: number[][] = [];
-      const featuresCount = fileData.features.length;
-      const rowsCount = fileData.timestamps.length;
-
-      for (let i = 0; i < rowsCount; i++) {
-        const row: number[] = [];
-        for (let j = 0; j < featuresCount; j++) {
-          const index = i * featuresCount + j;
-          row.push(fileData.values[index] || 0);
-        }
-        data.push(row);
-      }
-
-      setDataset({
-        features: fileData.features,
-        data: data,
-      });
-    }
-  }, [fileData]);
 
   // 用戶選擇訓練特徵
   const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
@@ -128,11 +103,11 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
       </div>
 
       {/* 主體區域 */}
-      <div className="flex flex-col gap-4 flex-1 overflow-auto">
+      <div className="flex flex-col gap-4 flex-1 max-h-4/5 overflow-auto">
         {/* 圖表區 */}
         <div className="bg-white shadow rounded-lg p-4 h-full flex justify-center items-center">
           {fileData ? (
-            <LineChart fileData={fileData} />
+            <LineChart fileData={fileData} selectedFeatures={selectedFeatures} />
           ) : (
             <div className="text-gray-500 text-lg">尚未上傳資料</div>
           )}
@@ -144,11 +119,10 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
 
           <div className="grid gap-4 md:grid-cols-2">
             <FeatureSelection
-              features={dataset?.features || []}
+              features={fileData?.features || []}
               selectedFeatures={selectedFeatures}
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
-                setConfigChangeSource('features');
               }}
               onSelectionConfigChange={(config) => {
                 updateJsonConfig(config);
@@ -156,11 +130,10 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
             />
 
             <LabelSelection
-              features={dataset?.features || []}
+              features={selectedFeatures || []}
               selectedLabel={selectedLabel}
               onLabelChange={(label) => {
                 setSelectedLabel(label);
-                setConfigChangeSource('features');
               }}
               onSelectionConfigChange={(config) => {
                 updateJsonConfig(config);

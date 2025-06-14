@@ -17,27 +17,36 @@ ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Title, T
 
 type Props = {
   fileData: ProcessedFileData;
+  selectedFeatures: string[];
 };
 
-const getChartData = (fileData: ProcessedFileData) => {
+const getChartData = (fileData: ProcessedFileData, selectedFeatures: string[]) => {
   const { timestamps, features, values } = fileData;
+  const featureIndexMap = new Map(features.map((f, idx) => [f, idx]));
+  const total = selectedFeatures.length;
 
-  const datasets = features.map((feature, featureIndex) => {
-    const data = timestamps.map((_, i) => {
-      const valueIndex = featureIndex * timestamps.length + i;
-      return values[valueIndex];
-    });
+  const datasets = selectedFeatures
+    .map((feature, i) => {
+      const featureIndex = featureIndexMap.get(feature);
+      if (featureIndex === undefined) return null;
 
-    const color = `hsl(${(featureIndex * 60) % 360}, 70%, 50%)`; // 彩色區分
+      const data = timestamps.map((_, i) => {
+        const valueIndex = featureIndex * timestamps.length + i;
+        return values[valueIndex];
+      });
 
-    return {
-      label: feature,
-      data,
-      fill: false,
-      borderColor: color,
-      tension: 0.2,
-    };
-  });
+      const hue = (360 / total) * i;
+      const color = `hsl(${hue}, 70%, 50%)`;
+
+      return {
+        label: feature,
+        data,
+        fill: false,
+        borderColor: color,
+        tension: 0.2,
+      };
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
 
   return {
     labels: timestamps,
@@ -45,12 +54,16 @@ const getChartData = (fileData: ProcessedFileData) => {
   };
 };
 
-const LineChart: React.FC<Props> = ({ fileData }) => {
+const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
   if (!fileData.timestamps.length || !fileData.features.length) {
     return <div>檔案內無資料</div>;
   }
 
-  const chartData = getChartData(fileData);
+  if (selectedFeatures.length === 0) {
+    return <div className="text-gray-500">請選擇至少一個特徵</div>;
+  }
+
+  const chartData = getChartData(fileData, selectedFeatures);
 
   const options = {
     responsive: true,
