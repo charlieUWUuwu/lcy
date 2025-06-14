@@ -5,10 +5,6 @@ import { ModelParameters } from '../../types';
 import ModelSelection from './ModelSelection';
 import './ModelTraining.css';
 
-// interface TrainingResult {
-//   accuracy: number;
-//   recall: number;
-// }
 
 const ModelTraining: React.FC = () => {
   const navigate = useNavigate();
