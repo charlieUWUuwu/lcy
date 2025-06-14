@@ -24,7 +24,7 @@ const getChartData = (fileData: ProcessedFileData) => {
 
   const datasets = features.map((feature, featureIndex) => {
     const data = timestamps.map((_, i) => {
-      const valueIndex = i + featureIndex * timestamps.length;
+      const valueIndex = featureIndex * timestamps.length + i;
       return values[valueIndex];
     });
 
