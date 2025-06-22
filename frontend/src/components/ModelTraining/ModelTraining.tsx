@@ -13,7 +13,6 @@ const ModelTraining: React.FC = () => {
     learningRate: 0.001,
     batchSize: 32,
     epochs: 10,
-    earlyStoppingPatience: 3,
   });
   const [configJson, setConfigJson] = useState<string>('');
   const [configChangeSource, setConfigChangeSource] = useState<

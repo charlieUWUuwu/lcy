@@ -7,47 +7,20 @@ export interface SelectionConfig {
   selectedLabel: string | null;
 }
 
-// Base model parameters that all models share
-export interface BaseModelParameters {
+export interface DLModelParameters {
   learningRate: number;
   batchSize: number;
   epochs: number;
-  earlyStoppingPatience: number;
 }
 
-// Specific model parameters (can be extended for different model types)
-export interface LSTMParameters extends BaseModelParameters {
-  hiddenLayers: number;
-  hiddenUnits: number;
-  dropout: number;
-}
-
-export interface CNNParameters extends BaseModelParameters {
-  kernelSize: number;
-  filters: number;
-  poolSize: number;
-}
-
-export interface RFParameters extends BaseModelParameters {
-  nEstimators: number;
-  maxDepth: number;
-  minSamplesSplit: number;
-}
-
-export interface XGBParameters extends BaseModelParameters {
-  nEstimators: number;
-  maxDepth: number;
+export interface MLModelParameters {
+  iterations: number;
   learningRate: number;
-  gamma: number;
+  depth: number;
 }
 
 // Union type for all possible model parameters
-export type ModelParameters =
-  | BaseModelParameters
-  | LSTMParameters
-  | CNNParameters
-  | RFParameters
-  | XGBParameters;
+export type ModelParameters = DLModelParameters | MLModelParameters;
 
 // Complete training configuration
 export interface TrainingConfig {
@@ -59,49 +32,29 @@ export interface TrainingConfig {
 // Default parameter values for each model type
 export const defaultParameters: Record<string, ModelParameters> = {
   LSTM: {
+    epochs: 10,
     learningRate: 0.001,
     batchSize: 32,
-    epochs: 10,
-    earlyStoppingPatience: 3,
-    hiddenLayers: 2,
-    hiddenUnits: 64,
-    dropout: 0.2,
   },
-  GRU: {
-    learningRate: 0.001,
-    batchSize: 32,
+  RNN: {
     epochs: 10,
-    earlyStoppingPatience: 3,
-    hiddenLayers: 2,
-    hiddenUnits: 64,
-    dropout: 0.2,
+    learningRate: 0.0001,
+    batchSize: 16,
   },
-  CNN: {
-    learningRate: 0.001,
-    batchSize: 32,
-    epochs: 10,
-    earlyStoppingPatience: 3,
-    kernelSize: 3,
-    filters: 64,
-    poolSize: 2,
-  },
-  RF: {
+  XGBoost: {
+    iterations: 300,
     learningRate: 0.1,
-    batchSize: 32,
-    epochs: 1,
-    earlyStoppingPatience: 0,
-    nEstimators: 100,
-    maxDepth: 10,
-    minSamplesSplit: 2,
+    depth: 10,
   },
-  XGB: {
-    learningRate: 0.1,
-    batchSize: 32,
-    epochs: 100,
-    earlyStoppingPatience: 5,
-    nEstimators: 100,
-    maxDepth: 6,
-    gamma: 0,
+  CatBoost: {
+    iterations: 100,
+    learningRate: 0.01,
+    depth: 5,
+  },
+  LightGBM: {
+    iterations: 50,
+    learningRate: 0.01,
+    depth: 5,
   },
 };
 
