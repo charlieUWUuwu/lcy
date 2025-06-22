@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   DLModelParameters,
   MLModelParameters,
+  MODEL_OPTIONS,
   ModelParameters,
   getDefaultParameters,
 } from '../../types';
@@ -31,14 +32,6 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>(
     'init',
   );
-
-  const models = [
-    { id: 'LSTM', name: 'LSTM' },
-    { id: 'RNN', name: 'RNN' },
-    { id: 'XGBoost', name: 'XGBoost' },
-    { id: 'CatBoost', name: 'CatBoost' },
-    { id: 'LightGBM', name: 'LightGBM' },
-  ];
 
   useEffect(() => {
     if (paramChangeSource === 'ui' || paramChangeSource === 'model') {
@@ -221,7 +214,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
             onChange={(e) => onModelChange(e.target.value)}
             className="model-select"
           >
-            {models.map((model) => (
+            {MODEL_OPTIONS.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name}
               </option>

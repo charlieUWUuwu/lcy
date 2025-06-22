@@ -58,6 +58,12 @@ export const defaultParameters: Record<string, ModelParameters> = {
   },
 };
 
+// 根據 defaultParameters 自動產生模型下拉選單選項
+export const MODEL_OPTIONS = Object.keys(defaultParameters).map((key) => ({
+  id: key,
+  name: key,
+}));
+
 // Get default parameters for a specific model type
 export function getDefaultParameters(modelType: string): ModelParameters {
   return defaultParameters[modelType] || defaultParameters.LSTM;
