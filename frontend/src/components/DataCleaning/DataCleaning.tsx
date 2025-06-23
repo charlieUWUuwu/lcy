@@ -108,7 +108,7 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
       </div>
 
       {/* 主體區域 */}
-      <div className="flex flex-col gap-4 flex-1 max-h-4/5 overflow-auto">
+      <div className="flex flex-col gap-4 flex-1 overflow-auto">
         {/* 圖表區 */}
         <div className="bg-white shadow rounded-lg p-4 h-full flex justify-center items-center">
           {fileData ? (
