@@ -87,15 +87,6 @@ body {
 }
 
 /* Navigation */
-.navigation {
-  width: 150px;
-  background-color: #f0f0f0;
-  border-right: 1px solid #ddd;
-  padding: 20px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 .nav-item {
   display: block;
@@ -114,12 +105,6 @@ body {
 .nav-item.active {
   background-color: #ffcccc;
   color: #333;
-}
-
-.model-info {
-  margin-top: 30px;
-  font-size: 14px;
-  text-align: center;
 }
 
 /* Content Container */
