@@ -95,7 +95,7 @@ const ModelTraining: React.FC = () => {
   };
 
   return (
-    <div className="model-training-container">
+    <div className="h-[80vh] flex flex-col p-5 md:p-5 p-[15px]">
       <div className="model-training-content">
         <div className="model-selection-section">
           <ModelSelection
@@ -106,42 +106,48 @@ const ModelTraining: React.FC = () => {
             onConfigJsonChange={handleConfigJsonChange}
           />
 
-          <div className="training-controls">
-            <div className="note">if result not great, select model again to retrain</div>
+          <div className="flex flex-col gap-[15px]">
+            <div className="text-[12px] text-[#777] mt-[5px] italic py-[10px]">if result not great, select model again to retrain</div>
 
             {process.env.NODE_ENV === 'development' && (
-              <div className="debug-info">
+              <div className="">
                 <small>Config source: {configChangeSource}</small>
               </div>
             )}
-            <button className="training-button" onClick={handleTraining} disabled={isTraining}>
+            <button className="px-3 py-[6px] text-base text-white bg-[#f0f0f0] 
+              border border-[#ddd] rounded-[5px] cursor-pointer my-[10px] mb-[20px] 
+              transition-colors duration-200 hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={handleTraining} 
+              disabled={isTraining}>
+
               {isTraining ? 'Training...' : 'start training'}
+            
             </button>
 
-            <div className="training-results">
+            <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef]">
               {/* results*/}
-              <div className="placeholder-results">
+              <div className="mb-2 font-medium">
                 <p>Training results will appear here</p>
               </div>
             </div>
           </div>
         </div>{' '}
-        {/* closes model-selection-section */}
-        <div className="visualization-section">
-          <div className="visualization-tabs">
-            <div className="tab-headers">
+        {/* model-output-visualization */}
+        <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef] ">
+          <div className="visualization-tabs border border-[#ddd] rounded-[5px] overflow-hidden h-full flex flex-col my-[20px]">
+            <div className="flex bg-[#f0f0f0] border-b border-[#ddd] gap-[10px] mb-[20px]">
               <div className="tab-header active">feature impact</div>
               <div className="tab-header">Model prediction</div>
             </div>
-            <div className="visualization-content">
-              <div className="placeholder-chart">
+            <div className="flex-1 flex items-center justify-center bg-white rounded-[6px] border border-[#e9ecef]">
+              <div className="text-center text-[#6c757d] text-[18px]">
                 <p>Visualization content will appear here</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="actions">
-          <button className="previous-button" onClick={() => navigate('/data-cleaning')}>
+        <div className="flex justify-between mt-5">
+          <button className="previous-button px-4 py-2 text-sm bg-[#f0f0f0] border border-[#ddd] rounded-[5px] cursor-pointer transition-all duration-200 hover:bg-[#e0e0e0] hover:border-[#bbb]" onClick={() => navigate('/data-cleaning')}>
             previous
           </button>
         </div>
