@@ -31,12 +31,12 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
 
   return (
     <div className="flex-1 p-2 bg-[#f8f8f8] border border-[#ddd] rounded-[5px]">
-      <div className="selection-header">label selection</div>
-      <div className="label-list">
+      <div className="text-center p-[5px] bg-[#f0f0f0] rounded-[3px] mb-[10px]">label selection</div>
+      <div className="max-h-[150px] overflow-y-auto">
         {features.length > 0 ? (
           features.map((feature, index) => (
-            <div key={index} className="label-item">
-              <label className="label-radio">
+            <div key={index} className="mb-1">
+              <label className="flex items-center gap-[5px]">
                 <input
                   type="radio"
                   name="label-selection"
