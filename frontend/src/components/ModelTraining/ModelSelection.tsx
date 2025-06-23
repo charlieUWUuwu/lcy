@@ -185,7 +185,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
       </div>
 
       {selectedModel && (
-        <div className="bg-[#f5f5f5] br-[6px] p-3 mt-3">
+        <div className="bg-[#f5f5f5] mt-3">
           <div className="font-semibold mb-3 text-left text-[#333]">model parameters</div>
 
           <div className="parameter-group">

@@ -96,9 +96,9 @@ const ModelTraining: React.FC = () => {
   };
 
   return (
-    <div className="h-[80vh] flex flex-col p-5 md:p-5 p-[15px]">
-      <div className="model-training-content">
-        <div className="model-selection-section">
+    <div className="h-[80vh] flex flex-col p-5 md:p-5">
+      <div className="flex-1 grid grid-cols-1 xl:grid-cols-[400px_1fr] gap-5 xl:gap-8 h-full">
+        <div className="flex flex-col gap-5 order-1 xl:order-none">
           <ModelSelection
             selectedModel={selectedModel}
             onModelChange={handleModelChange}
@@ -107,16 +107,14 @@ const ModelTraining: React.FC = () => {
             onConfigJsonChange={handleConfigJsonChange}
           />
 
-          <div className="flex flex-col gap-[15px]">
-            <div className="text-[12px] text-[#777] mt-[5px] italic py-[10px]">if result not great, select model again to retrain</div>
-
+          <div className="flex flex-col gap-4">
             {process.env.NODE_ENV === 'development' && (
               <div className="">
                 <small>Config source: {configChangeSource}</small>
               </div>
             )}
-            <button className="px-3 py-[6px] text-base text-white bg-[#f0f0f0] 
-              border border-[#ddd] rounded-[5px] cursor-pointer my-[10px] mb-[20px] 
+            <button className="px-3 py-2 text-base bg-[#f0f0f0] 
+              border border-[#ddd] rounded-[5px] cursor-pointer my-1 mb-1 
               transition-colors duration-200 hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed" 
               onClick={handleTraining} 
               disabled={isTraining}>
@@ -124,6 +122,10 @@ const ModelTraining: React.FC = () => {
               {isTraining ? 'Training...' : 'start training'}
             
             </button>
+            <div className="text-[12px] text-[#777]italic py-[10px]">if result not great, select model again to retrain</div>
+
+            
+            
 
             <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef]">
               {/* results*/}
@@ -134,21 +136,29 @@ const ModelTraining: React.FC = () => {
           </div>
         </div>{' '}
         {/* model-output-visualization */}
-        <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef] ">
-          <div className="visualization-tabs border border-[#ddd] rounded-[5px] overflow-hidden h-full flex flex-col my-[20px]">
-            <div className="flex bg-[#f0f0f0] border-b border-[#ddd] gap-[10px] mb-[20px]">
-              <div className="tab-header active">feature impact</div>
-              <div className="tab-header">Model prediction</div>
+        {/* Model Output Visualization Section */}
+        <div className="mt-5 xl:mt-0 p-4 bg-gray-50 rounded-md border border-gray-200 order-2 xl:order-none">
+          <div className="border border-gray-300 rounded overflow-hidden h-full flex flex-col my-5">
+            {/* Tab Headers */}
+            <div className="flex bg-gray-100 border-b border-gray-300 gap-2.5 mb-5">
+              <div className="px-4 py-2 bg-white border-b-2 border-blue-500 cursor-pointer transition-colors duration-200">
+                feature impact
+              </div>
+              <div className="px-4 py-2 cursor-pointer transition-colors duration-200 hover:bg-gray-200">
+                Model prediction
+              </div>
             </div>
-            <div className="flex-1 flex items-center justify-center bg-white rounded-[6px] border border-[#e9ecef]">
-              <div className="text-center text-[#6c757d] text-[18px]">
+            
+            {/* Visualization Content */}
+            <div className="flex-1 flex items-center justify-center bg-white rounded-md border border-gray-200">
+              <div className="text-center text-gray-500 text-lg">
                 <p>Visualization content will appear here</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex justify-between mt-5">
-          <button className="previous-button px-4 py-2 text-sm bg-[#f0f0f0] border border-[#ddd] rounded-[5px] cursor-pointer transition-all duration-200 hover:bg-[#e0e0e0] hover:border-[#bbb]" onClick={() => navigate('/data-cleaning')}>
+        <div className="flex justify-between">
+          <button className="my-4 text-sm bg-[#f0f0f0] border border-[#ddd] rounded-[5px] cursor-pointer transition-all duration-200 hover:bg-[#e0e0e0] hover:border-[#bbb]" onClick={() => navigate('/data-cleaning')}>
             previous
           </button>
         </div>
