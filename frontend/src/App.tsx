@@ -13,7 +13,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div className="app-container">
+      <div className="flex h-screen">
         <Navigation />
         <div className="flex-1 p-5 overflow-y-auto">
           <Routes>

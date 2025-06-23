@@ -86,11 +86,6 @@ body {
   color: #333;
 }
 
-.app-container {
-  display: flex;
-  height: 100vh;
-}
-
 /* Navigation */
 
 .nav-item {
@@ -119,21 +114,4 @@ body {
   margin-top: 5px;
   font-style: italic;
   padding: 10px 0;
-}
-
-.tab-header {
-  padding: 10px 20px;
-  cursor: pointer;
-  border-right: 1px solid #ddd;
-  margin-right: 10px;
-  border-radius: 6px 6px 0 0;
-  background-color: #e9ecef;
-  transition: background-color 0.2s;
-}
-
-.tab-header.active {
-  background-color: #ffcccc;
-  color: white;
-  border-bottom: 2px solid #4CAF50;
-  font-weight: bold;
 }
