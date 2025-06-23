@@ -166,13 +166,13 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
 
   return (
     <div className="items-center gap-[10px]">
-      <div className="selection-label">model selection</div>
+      <div className="font-semibold mb-2 text-left">model selection</div>
       <div className="w-[30%]">
-        <div className="select-container">
+        <div className="relative w-[120px] mb-4">
           <select
             value={selectedModel}
             onChange={(e) => onModelChange(e.target.value)}
-            className="model-select"
+            className="w-full px-[10px] pr-[25px] py-[5px] appearance-none border border-[#ddd] rounded-[5px] bg-white"
           >
             {models.map((model) => (
               <option key={model.id} value={model.id}>
@@ -180,13 +180,13 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               </option>
             ))}
           </select>
-          <div className="select-arrow">▼</div>
+          <div className="absolute right-[10px] top-[75%] -translate-y-1/2 pointer-events-none text-[10px] text-[#666]">▼</div>
         </div>
       </div>
 
       {selectedModel && (
-        <div className="parameter-selection">
-          <div className="parameter-label">model parameters</div>
+        <div className="bg-[#f5f5f5] br-[6px] p-3 mt-3">
+          <div className="font-semibold mb-3 text-left text-[#333]">model parameters</div>
 
           <div className="parameter-group">
             <label htmlFor="batchSize">Batch Size:</label>
@@ -373,8 +373,8 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           )}
 
           {/* JSON Configuration Display/Editor */}
-          <div className="json-config-section">
-            <div className="parameter-label">JSON Configuration</div>
+          <div className="mt-5 mt-5 border-t border-[#ddd] pt-[15px]">
+            <div className="font-semibold mb-3 text-left text-[#333]">JSON Configuration</div>
             <textarea
               className="json-config-editor"
               value={
