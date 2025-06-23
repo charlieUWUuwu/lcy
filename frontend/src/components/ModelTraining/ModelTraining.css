@@ -27,32 +27,10 @@
   gap: 15px;
 }
 
-.note {
-  font-size: 14px;
-  color: #666;
-  font-style: italic;
-  padding: 10px 0;
-}
 
-.training-button {
-  padding: 12px 24px;
-  background-color: #4CAF50; 
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 10px 0 20px 0;
-  transition: background-color 0.2s;
-}
 
 .training-button:hover:not(:disabled) {
   background-color: #45a049;
-}
-
-.training-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
 }
 
 .training-results {
@@ -79,36 +57,6 @@
   background-color: #f8f9fa;
   border-radius: 8px;
   padding: 20px;
-}
-
-.visualization-tabs {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  margin: 20px 0;
-}
-
-.tab-headers {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.tab-header {
-  padding: 10px 20px;
-  cursor: pointer;
-  margin-right: 10px;
-  border-radius: 6px 6px 0 0;
-  background-color: #e9ecef;
-  transition: background-color 0.2s;
-}
-
-.tab-header.active {
-  background-color: #4CAF50;
-  color: white;
-  border-bottom: 2px solid #4CAF50;
-  font-weight: bold;
 }
 
 .tab-header:hover:not(.active) {
