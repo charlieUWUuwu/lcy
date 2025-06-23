@@ -15,7 +15,7 @@ const App: React.FC = () => {
     <Router>
       <div className="app-container">
         <Navigation />
-        <div className="content-container">
+        <div className="flex-1 p-5 overflow-y-auto">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
