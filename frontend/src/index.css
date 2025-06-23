@@ -121,67 +121,6 @@ body {
   padding: 10px 0;
 }
 
-.select-container {
-  position: relative;
-  width: 120px;
-  margin-bottom: 16px;
-}
-
-.model-select {
-  width: 100%;
-  padding: 5px 25px 5px 10px;
-  appearance: none;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fff;
-}
-
-.select-arrow {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 10px;
-  color: #666;
-}
-
-.training-button {
-  padding: 6px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  color: white;
-  font-size: 16px;
-  margin: 10px 0 20px 0;
-  transition: background-color 0.2s;
-}
-
-.training-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
-.visualization-tabs {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  overflow: hidden;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  margin: 20px 0;
-}
-
-.tab-headers {
-  display: flex;
-  background-color: #f0f0f0;
-  border-bottom: 1px solid #ddd;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
 .tab-header {
   padding: 10px 20px;
   cursor: pointer;
@@ -197,38 +136,4 @@ body {
   color: white;
   border-bottom: 2px solid #4CAF50;
   font-weight: bold;
-}
-
-.tab-content {
-  padding: 10px;
-  background-color: #fff;
-  min-height: 300px;
-}
-
-.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  color: #777;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.previous-button,
-.next-button {
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.next-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
