@@ -227,33 +227,3 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* Load Model Page */
-.load-model-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.model-controls {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 10px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-.start-prediction-button {
-  padding: 6px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.model-message {
-  font-size: 14px;
-  color: #777;
-}
