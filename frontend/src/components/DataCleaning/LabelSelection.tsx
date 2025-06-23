@@ -30,7 +30,7 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
   };
 
   return (
-    <div className="label-selection">
+    <div className="flex-1 p-2 bg-[#f8f8f8] border border-[#ddd] rounded-[5px]">
       <div className="selection-header">label selection</div>
       <div className="label-list">
         {features.length > 0 ? (
