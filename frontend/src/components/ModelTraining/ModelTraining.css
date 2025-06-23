@@ -1,12 +1,3 @@
-.model-training-container {
-  width: 75vw;
-  height: 80vh;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
 .model-training-content {
   flex: 1;
   display: grid;
@@ -21,30 +12,7 @@
   gap: 20px;
 }
 
-.training-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
 
-
-
-.training-button:hover:not(:disabled) {
-  background-color: #45a049;
-}
-
-.training-results {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-
-.training-results div {
-  margin-bottom: 8px;
-  font-weight: 500;
-}
 
 .model-path-info {
   margin-top: 10px;
@@ -63,40 +31,6 @@
   background-color: #dee2e6;
 }
 
-.visualization-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-
-.placeholder-chart {
-  text-align: center;
-  color: #6c757d;
-  font-size: 18px;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.previous-button {
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.previous-button:hover {
-  background-color: #e0e0e0;
-  border-color: #bbb;
-}
 
 @media (max-width: 1024px) {
   .model-training-content {
@@ -114,18 +48,11 @@
 }
 
 @media (max-width: 768px) {
-  .model-training-container {
-    padding: 15px;
-  }
   
   .model-training-content {
     gap: 20px;
   }
   
-  .tab-headers {
-    flex-direction: column;
-    gap: 5px;
-  }
   
   .tab-header {
     margin-right: 0;
