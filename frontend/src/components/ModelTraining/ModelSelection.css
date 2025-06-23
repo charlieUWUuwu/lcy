@@ -1,37 +1,7 @@
-.model-selection {
-  margin-bottom: 20px;
-  width: 100%;
-}
-
 .selection-label {
   font-weight: 600;
   margin-bottom: 8px;
   text-align: left;
-}
-
-.select-container {
-  position: relative;
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.model-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  appearance: none;
-  background-color: white;
-}
-
-.select-arrow {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  font-size: 10px;
-  color: #666;
 }
 
 .parameter-selection {

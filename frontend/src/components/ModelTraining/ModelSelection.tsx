@@ -205,9 +205,9 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   };
 
   return (
-    <div className="model-selection">
+    <div className="items-center gap-[10px]">
       <div className="selection-label">model selection</div>
-      <div className="div-30">
+      <div className="w-[30%]">
         <div className="select-container">
           <select
             value={selectedModel}
