@@ -19,12 +19,12 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
 
   // 用戶選擇訓練特徵
-  const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
-    setJsonConfig((prev) => ({
-      ...prev,
-      ...config,
-    }));
-  }, []);
+  // const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
+  //   setJsonConfig((prev) => ({
+  //     ...prev,
+  //     ...config,
+  //   }));
+  // }, []);
 
   const handleOpenFile = async () => {
     const filePath = await window.electronAPI.openCSV();
@@ -129,9 +129,9 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
               }}
-              onSelectionConfigChange={(config) => {
-                updateJsonConfig(config);
-              }}
+              // onSelectionConfigChange={(config) => {
+              //   updateJsonConfig(config);
+              // }}
             />
 
             <LabelSelection
@@ -140,9 +140,9 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
               onLabelChange={(label) => {
                 setSelectedLabel(label);
               }}
-              onSelectionConfigChange={(config) => {
-                updateJsonConfig(config);
-              }}
+              // onSelectionConfigChange={(config) => {
+              //   updateJsonConfig(config);
+              // }}
             />
           </div>
         </div>

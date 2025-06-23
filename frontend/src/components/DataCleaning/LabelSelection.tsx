@@ -22,11 +22,11 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
     onLabelChange(feature);
 
     // Update JSON configuration if callback is provided
-    if (onSelectionConfigChange) {
-      onSelectionConfigChange({
-        selectedLabel: feature,
-      });
-    }
+    // if (onSelectionConfigChange) {
+    //   onSelectionConfigChange({
+    //     selectedLabel: feature,
+    //   });
+    // }
   };
 
   return (
