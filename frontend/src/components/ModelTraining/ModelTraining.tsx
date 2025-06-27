@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { ModelParameters } from '../../types';
 import ModelSelection from './ModelSelection';
-import './ModelTraining.css';
+
 
 
 const ModelTraining: React.FC = () => {
