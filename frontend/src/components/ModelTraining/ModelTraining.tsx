@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ModelParameters } from '../../types';
 import ModelSelection from './ModelSelection';
 
-
-
 const ModelTraining: React.FC = () => {
   const navigate = useNavigate();
   const [selectedModel, setSelectedModel] = useState<string>('LSTM');
@@ -112,19 +110,18 @@ const ModelTraining: React.FC = () => {
                 <small>Config source: {configChangeSource}</small>
               </div>
             )}
-            <button className="px-3 py-2 text-base bg-[#f0f0f0] 
+            <button
+              className="px-3 py-2 text-base bg-[#f0f0f0] 
               border border-[#ddd] rounded-[5px] cursor-pointer my-1 mb-1 
-              transition-colors duration-200 hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed" 
-              onClick={handleTraining} 
-              disabled={isTraining}>
-
+              transition-colors duration-200 hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleTraining}
+              disabled={isTraining}
+            >
               {isTraining ? 'Training...' : 'start training'}
-            
             </button>
-            <div className="text-[12px] text-[#777]italic py-[10px]">if result not great, select model again to retrain</div>
-
-            
-            
+            <div className="text-[12px] text-[#777]italic py-[10px]">
+              if result not great, select model again to retrain
+            </div>
 
             <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef]">
               {/* results*/}
@@ -147,7 +144,7 @@ const ModelTraining: React.FC = () => {
                 Model prediction
               </div>
             </div>
-            
+
             {/* Visualization Content */}
             <div className="flex-1 flex items-center justify-center bg-white rounded-md border border-gray-200">
               <div className="text-center text-gray-500 text-lg">
@@ -157,7 +154,10 @@ const ModelTraining: React.FC = () => {
           </div>
         </div>
         <div className="flex justify-between">
-          <button className="my-4 text-sm bg-[#f0f0f0] border border-[#ddd] rounded-[5px] cursor-pointer transition-all duration-200 hover:bg-[#e0e0e0] hover:border-[#bbb]" onClick={() => navigate('/data-cleaning')}>
+          <button
+            className="my-4 text-sm bg-[#f0f0f0] border border-[#ddd] rounded-[5px] cursor-pointer transition-all duration-200 hover:bg-[#e0e0e0] hover:border-[#bbb]"
+            onClick={() => navigate('/data-cleaning')}
+          >
             previous
           </button>
         </div>

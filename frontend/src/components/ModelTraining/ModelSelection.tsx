@@ -220,7 +220,9 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               </option>
             ))}
           </select>
-          <div className="absolute right-[10px] top-[75%] -translate-y-1/2 pointer-events-none text-[10px] text-[#666]">▼</div>
+          <div className="absolute right-[10px] top-[75%] -translate-y-1/2 pointer-events-none text-[10px] text-[#666]">
+            ▼
+          </div>
         </div>
       </div>
 
