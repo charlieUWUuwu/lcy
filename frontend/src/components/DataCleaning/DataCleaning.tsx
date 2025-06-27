@@ -7,24 +7,23 @@ import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 
 interface DataCleaningProps {
-  onModelTrained: (model: string, accuracy: number, recall: number) => void;
+  fileData: ProcessedFileData | null;
+  setFileData: (data: ProcessedFileData | null) => void;
+  selectedFeatures: string[];
+  setSelectedFeatures: (features: string[]) => void;
+  selectedLabel: string | null;
+  setSelectedLabel: (label: string | null) => void;
 }
 
-const DataCleaning: React.FC<DataCleaningProps> = () => {
+const DataCleaning: React.FC<DataCleaningProps> = ({
+  fileData,
+  setFileData,
+  selectedFeatures,
+  setSelectedFeatures,
+  selectedLabel,
+  setSelectedLabel,
+}) => {
   const navigate = useNavigate();
-
-  // State declarations
-  const [fileData, setFileData] = useState<ProcessedFileData | null>(null);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-
-  // 用戶選擇訓練特徵
-  // const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
-  //   setJsonConfig((prev) => ({
-  //     ...prev,
-  //     ...config,
-  //   }));
-  // }, []);
 
   const handleOpenFile = async () => {
     const filePath = await window.electronAPI.openCSV();
@@ -127,9 +126,6 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
               }}
-              // onSelectionConfigChange={(config) => {
-              //   updateJsonConfig(config);
-              // }}
             />
 
             <LabelSelection
@@ -138,9 +134,6 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
               onLabelChange={(label) => {
                 setSelectedLabel(label);
               }}
-              // onSelectionConfigChange={(config) => {
-              //   updateJsonConfig(config);
-              // }}
             />
           </div>
         </div>

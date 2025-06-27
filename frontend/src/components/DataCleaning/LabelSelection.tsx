@@ -20,13 +20,6 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
   const handleLabelChange = (feature: string) => {
     // Update the parent component
     onLabelChange(feature);
-
-    // Update JSON configuration if callback is provided
-    // if (onSelectionConfigChange) {
-    //   onSelectionConfigChange({
-    //     selectedLabel: feature,
-    //   });
-    // }
   };
 
   return (
