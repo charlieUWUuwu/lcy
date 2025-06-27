@@ -69,7 +69,7 @@ const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: 'right' as const,
       },
       title: {
         display: false,
@@ -97,7 +97,7 @@ const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-center overflow-auto">
+    <div className="w-screen h-full flex justify-center items-center">
       <Line data={chartData} options={options} />
     </div>
   );

@@ -41,26 +41,30 @@ const FeatureSelection: React.FC<FeatureSelectionProps> = ({
 
   return (
     <div className="flex-1 p-2 bg-[#f8f8f8] border border-[#ddd] rounded-[5px]">
-      <div className="text-center p-[5px] bg-[#f0f0f0] rounded-[3px] mb-[10px] font-bold mb-2">Feature Selection</div>
+      <div className="flex justify-center gap-2">
+        <div className="flex w-[80%] justify-center text-center items-center p-[5px] bg-[#f0f0f0] rounded-[3px] mb-[10px] font-bold mb-2">
+          Feature Selection
+        </div>
 
-      {/* 控制按鈕區域 */}
-      <div className="mb-3 flex gap-2">
-        <button
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={handleSelectAll}
-        >
-          全選
-        </button>
-        <button
-          className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
-          onClick={handleClearAll}
-        >
-          全部取消
-        </button>
+        {/* 控制按鈕區域 */}
+        <div className="w-[20%] mb-3 flex gap-2">
+          <button
+            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleSelectAll}
+          >
+            全選
+          </button>
+          <button
+            className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+            onClick={handleClearAll}
+          >
+            全部取消
+          </button>
+        </div>
       </div>
 
       {/* 勾選欄區域 */}
-      <div className="max-h-[150px] overflow-y-auto max-h-60 overflow-y-auto border p-2 rounded shadow-sm">
+      <div className="custom-scroll overflow-y-auto max-h-60 border p-2 rounded shadow-sm">
         {features.length > 0 ? (
           features.map((feature, index) => (
             <div key={index} className="mb-1">
