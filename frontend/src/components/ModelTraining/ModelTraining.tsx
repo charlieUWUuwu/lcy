@@ -1,10 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ModelParameters } from '../../types';
+import { ModelParameters, ProcessedFileData } from '../../types';
+import LineChart from '../LineChart';
 import ModelSelection from './ModelSelection';
 
 const ModelTraining: React.FC = () => {
+  // line chart
+  const [activeTab, setActiveTab] = useState('feature');
+
   // image
   const [images, setImages] = useState<{
     all: string;
@@ -127,6 +131,23 @@ const ModelTraining: React.FC = () => {
     // }
   };
 
+  const fileData: ProcessedFileData = {
+    name: 'demo.csv',
+    features: ['truth', 'predict'],
+    timestamps: [
+      '2025-01-01 00:00',
+      '2025-01-01 01:00',
+      '2025-01-01 02:00',
+      '2025-01-01 03:00',
+      '2025-01-01 04:00',
+      '2025-01-01 05:00',
+      '2025-01-01 06:00',
+      '2025-01-01 07:00',
+    ],
+    values: [20, 21, 19, 22, 23, 24, 23.5, 25, 1.0, 1.1, 1.05, 1.2, 1.15, 1.1, 1.12, 1.3], // truth, predict 對應的各自 8 筆值
+  };
+  const selectedFeatures = ['truth', 'predict'];
+
   return (
     <div className="h-full flex flex-col md:p-5">
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-[400px_1fr] gap-5 xl:gap-8 h-full">
@@ -171,18 +192,33 @@ const ModelTraining: React.FC = () => {
         <div className="mt-5 xl:mt-0 p-4 bg-gray-50 rounded-md border border-gray-200 order-2 xl:order-none">
           <div className="h-full flex flex-col">
             {/* Tab Headers */}
-            <div className="flex bg-gray-100 border-b border-gray-300 gap-2.5 mb-5">
-              <div className="px-4 py-2 bg-white border-b-2 border-blue-500 cursor-pointer transition-colors duration-200">
+            <div className="w-full flex bg-gray-100 border-b border-gray-300 gap-2.5 mb-5">
+              <div
+                className={`px-4 py-2 cursor-pointer transition-colors duration-200 ${
+                  activeTab === 'feature'
+                    ? 'bg-white border-b-2 border-blue-500'
+                    : 'hover:bg-gray-200'
+                }`}
+                onClick={() => setActiveTab('feature')}
+              >
                 feature impact
               </div>
-              <div className="px-4 py-2 cursor-pointer transition-colors duration-200 hover:bg-gray-200">
+              <div
+                className={`px-4 py-2 cursor-pointer transition-colors duration-200 ${
+                  activeTab === 'prediction'
+                    ? 'bg-white border-b-2 border-blue-500'
+                    : 'hover:bg-gray-200'
+                }`}
+                onClick={() => setActiveTab('prediction')}
+              >
                 Model prediction
               </div>
             </div>
 
             {/* Visualization Content */}
             <div className="border border-gray-300 p-2 rounded flex items-center justify-center bg-gray-50 mb-4 w-full h-full">
-              {images ? (
+              {activeTab === 'feature' ? (
+                images ? (
                 <img
                   src={images[selected]}
                   alt={selected}
@@ -190,6 +226,9 @@ const ModelTraining: React.FC = () => {
                 />
               ) : (
                 <div className="text-gray-400">Loading...</div>
+                )
+              ) : (
+                <LineChart fileData={fileData} selectedFeatures={selectedFeatures} />
               )}
             </div>
 
