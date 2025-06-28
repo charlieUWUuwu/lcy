@@ -11,7 +11,7 @@ import {
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 
-import { ProcessedFileData } from '../../types/';
+import { ProcessedFileData } from '../types/';
 
 ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
@@ -67,6 +67,7 @@ const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false, // 可以配合外部容器控制大小
     plugins: {
       legend: {
         position: 'right' as const,
@@ -97,7 +98,7 @@ const LineChart: React.FC<Props> = ({ fileData, selectedFeatures }) => {
   };
 
   return (
-    <div className="w-screen h-full flex justify-center items-center">
+    <div className="w-full h-full flex justify-center items-center">
       <Line data={chartData} options={options} />
     </div>
   );
