@@ -29,21 +29,6 @@ const ModelTraining: React.FC = () => {
     loadImages();
   }, []);
 
-  // useEffect(() => {
-  //   // 模擬載入圖片，可替換為 Electron API
-  //   const load = async () => {
-  //   const toFileUrl = (path: string) =>
-  //     `file:///${path.replace(/\\/g, '/')}`; // 把 '\' 變成 '/' 並加上前綴
-
-  //   const all = toFileUrl('C:\\Users\\tzu-yi\\Pictures\\kisspng-bert-ernie-big-bird-count-von-count-oscar-the-grou-5ae7a0332294d3.5290421215251292671417.png');
-  //   const positive = '';
-  //   const negative = '';
-  //     setImages({ all, positive, negative });
-  //   };
-
-  //   load();
-  // }, []);
-
   const navigate = useNavigate();
   const [selectedModel, setSelectedModel] = useState<string>('LSTM');
   const [modelParameters, setModelParameters] = useState<ModelParameters>({
@@ -180,7 +165,6 @@ const ModelTraining: React.FC = () => {
             </div>
 
             <div className="mt-5 p-[15px] bg-[#f8f9fa] rounded-[6px] border border-[#e9ecef]">
-              {/* results*/}
               <div className="mb-2 font-medium">
                 <p>Training results will appear here</p>
               </div>

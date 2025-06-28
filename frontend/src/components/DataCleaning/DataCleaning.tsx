@@ -1,7 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ProcessedFileData, SelectionConfig } from '../../types';
+import { ProcessedFileData } from '../../types';
 import LineChart from '../LineChart';
 import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
