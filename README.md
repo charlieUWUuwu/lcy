@@ -48,33 +48,50 @@
    ```
 2. 在 local 新增 branch 並切換
    ```shell
-   git checkout -b <NEW_BRANCH_NAME>
+   git checkout -b <YOUR_BRANCH_NAME>
+   ```
+3. 在遠端建立自己維護的 branch
+   ```shell
+   git push -u origin <YOUR_BRANCH_NAME>
    ```
 
 ### 繼續增修內容，請依循下列流程進行：
-1. 切換到自己的開發分支，進行開發
-   ```shell
-   git checkout <NEW_BRANCH_NAME>
-   ```   
-2. (前端)編輯完成後，格式化並檢查程式碼
-   ```shell
-   npm run format-and-lint
-   ```
-3. 沒問題的話，進行 commit
-   ```shell
-   git add .
-   git commit -m "COMMIT_MSG"
-   ```
-4. 回到 develop 再次獲取 origin/develop 的最新版本、與自己的修正合併並修正出現的 conflict
-   ```shell
-   git checkout develop
-   git pull
-   git checkout <NEW_BRANCH_NAME>
-   git rebase develop
-   ```
-5. 將新 branch 的修正與 develop 合併並 push 到 Github
-   ```shell
-   git checkout develop
-   git merge <NEW_BRANCH_NAME>
-   git push
-   ```
+1. 拉取最新進度
+    ```bash
+    git checkout develop
+    git pull origin develop
+    git checkout <YOUR_BRANCH_NAME>
+    git pull origin <YOUR_BRANCH_NAME>
+    ```
+2. 使用 rebase 將 develop 最新進度套用到自己的分支
+    ```bash
+    git rebase develop
+    ```
+3. (opt)若有衝突請依序修復後：
+    ```bash
+    git add .
+    git rebase --continue
+    ```
+4. 開始開發與 commit
+    ```bash
+    # (前端)編輯後格式化與檢查
+    npm run format-and-lint
+
+    # 加入變更並 commit
+    git add .
+    git commit -m "feat: your message"
+    ```
+5. 上傳前或開發過程中同步最新的 develop 更新，可使用 merge
+    ```bash
+    git merge develop
+
+    # 此步驟可能遇到衝突，記得解決
+    ```
+6. 將你的分支 push 到遠端
+    ```bash
+    git push origin <YOUR_BRANCH_NAME>
+    ```
+7. 前往 GitHub 發送 Pull Request
+     - 從 <YOUR_BRANCH_NAME> 合併到 develop
+     - 確保 PR 中能看到正確的變更內容與 commit 歷史
+     - 請相關 reviewer 協助進行 Code Review

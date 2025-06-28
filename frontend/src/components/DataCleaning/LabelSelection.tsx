@@ -1,21 +1,17 @@
 import React from 'react';
 
-import { SelectionConfig } from '../../types';
-
 interface LabelSelectionProps {
   features: string[];
   selectedLabel: string | null;
   onLabelChange: (label: string | null) => void;
   // For JSON configuration
   configJson?: string;
-  onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
 }
 
 const LabelSelection: React.FC<LabelSelectionProps> = ({
   features,
   selectedLabel,
   onLabelChange,
-  onSelectionConfigChange,
 }) => {
   const handleLabelChange = (feature: string) => {
     // Update the parent component
