@@ -234,7 +234,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           <div className="mt-5 mt-5 border-t border-[#ddd] pt-[15px]">
             <div className="font-semibold mb-3 text-left text-[#333]">JSON Configuration</div>
             <textarea
-              className="json-config-editor"
+              className="json-config-editor custom-scroll"
               value={
                 configJson ||
                 JSON.stringify(
