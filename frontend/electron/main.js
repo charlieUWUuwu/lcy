@@ -92,3 +92,9 @@ ipcMain.handle('file:readCSV', async (_, filePath) => {
   const content = await fs.readFile(filePath, 'utf-8');
   return content;
 });
+
+ipcMain.handle('load-image-base64', async (event, filePath) => {
+  const data = await fs.readFile(filePath);
+  const base64 = data.toString('base64');
+  return `data:image/png;base64,${base64}`;
+});
