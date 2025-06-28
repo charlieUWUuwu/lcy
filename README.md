@@ -9,7 +9,7 @@
   - [Simple React Snippets](https://marketplace.visualstudio.com/items?itemName=burkeholland.simple-react-snippets)
   - [ES7+ React/Redux/React-Native snippets](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets)
 
-## Development
+## Development(Frontend)
 
 - Clone this repo
   ```shell
@@ -25,7 +25,7 @@
   ```
 - Start the development server and launch Electron
   ```shell
-  # This command starts the Vite development server on port 3000 and launches the Electron app for testing.
+  # This command starts the Vite development server and launches the Electron app for testing.
   npm run dev
   ```
 - Package the project
