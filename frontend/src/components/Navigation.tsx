@@ -6,7 +6,7 @@ const Navigation: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="navigation">
+    <nav className="w-[150px] bg-[#f0f0f0] border-r border-[#ddd] py-5 flex flex-col items-center">
       <NavLink to="/" className={`nav-item ${isActive('/') ? 'active' : ''}`}>
         Home
       </NavLink>

@@ -7,24 +7,23 @@ import LabelSelection from './LabelSelection';
 import LineChart from './LineChart';
 
 interface DataCleaningProps {
-  onModelTrained: (model: string, accuracy: number, recall: number) => void;
+  fileData: ProcessedFileData | null;
+  setFileData: (data: ProcessedFileData | null) => void;
+  selectedFeatures: string[];
+  setSelectedFeatures: (features: string[]) => void;
+  selectedLabel: string | null;
+  setSelectedLabel: (label: string | null) => void;
 }
 
-const DataCleaning: React.FC<DataCleaningProps> = () => {
+const DataCleaning: React.FC<DataCleaningProps> = ({
+  fileData,
+  setFileData,
+  selectedFeatures,
+  setSelectedFeatures,
+  selectedLabel,
+  setSelectedLabel,
+}) => {
   const navigate = useNavigate();
-
-  // State declarations
-  const [fileData, setFileData] = useState<ProcessedFileData | null>(null);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-
-  // 用戶選擇訓練特徵
-  const updateJsonConfig = useCallback((config: Partial<SelectionConfig>) => {
-    setJsonConfig((prev) => ({
-      ...prev,
-      ...config,
-    }));
-  }, []);
 
   const handleOpenFile = async () => {
     const filePath = await window.electronAPI.openCSV();
@@ -95,22 +94,22 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {/* Header 區塊 */}
-      <div className="flex items-center justify-between">
+      <div className="h-[5%] flex items-center">
         <button
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           onClick={handleOpenFile}
         >
           Import
         </button>
-        <div className="text-gray-600 text-sm">{fileData?.name || 'file name'}</div>
+        <div className="text-gray-600 pl-6 text-lg">{fileData?.name || 'file name'}</div>
       </div>
 
       {/* 主體區域 */}
-      <div className="flex flex-col gap-4 flex-1 max-h-4/5 overflow-auto">
+      <div className="h-[50%] flex flex-col gap-4 flex-1 overflow-auto custom-scroll">
         {/* 圖表區 */}
-        <div className="bg-white shadow rounded-lg p-4 h-full flex justify-center items-center">
+        <div className="h-[60%] bg-white shadow rounded-lg p-4 flex justify-center items-center">
           {fileData ? (
             <LineChart fileData={fileData} selectedFeatures={selectedFeatures} />
           ) : (
@@ -119,18 +118,13 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
         </div>
 
         {/* 控制區（說明區） */}
-        <div className="bg-gray-100 shadow-inner rounded-lg p-4">
-          <div className="text-lg font-semibold mb-2">說明:</div>
-
-          <div className="grid gap-4 md:grid-cols-2">
+        <div className="h-[40%] bg-gray-100 shadow-inner rounded-lg">
+          <div className="h-full grid gap-4 md:grid-cols-2">
             <FeatureSelection
               features={fileData?.features || []}
               selectedFeatures={selectedFeatures}
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
-              }}
-              onSelectionConfigChange={(config) => {
-                updateJsonConfig(config);
               }}
             />
 
@@ -140,16 +134,13 @@ const DataCleaning: React.FC<DataCleaningProps> = () => {
               onLabelChange={(label) => {
                 setSelectedLabel(label);
               }}
-              onSelectionConfigChange={(config) => {
-                updateJsonConfig(config);
-              }}
             />
           </div>
         </div>
       </div>
 
       {/* 底部操作按鈕 */}
-      <div className="flex justify-end">
+      <div className="h-[5%] flex justify-end">
         <button
           className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
           onClick={() => navigate('/model-training')}
