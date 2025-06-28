@@ -41,6 +41,7 @@
 ## How to maintain this repo
 
 ### 首次建立功能分支前，請依循下列流程進行：
+
 1. Pull origin/develop 最新版本
    ```shell
    git pull origin develop
@@ -49,7 +50,7 @@
    ```shell
    <YOUR_BRANCH_NAME> = <類型>/<功能名稱，用 kebab-case 表示>
 
-   例如 feature/connect-user-api
+   # 例如 feat/connect-user-api
    ```
      - 常見類型前綴
        - `feat/` ： 新增功能
@@ -68,6 +69,7 @@
    ```
 
 ### 繼續增修內容，請依循下列流程進行：
+
 1. 拉取分支的最新進度，並切回自己的分支
     ```bash
     git checkout develop
@@ -80,7 +82,6 @@
     git merge develop
     ```
 3. (opt)若有衝突請依序修復
-
 4. 開始開發與提交
     ```bash
     # (前端)編輯後格式化與檢查
