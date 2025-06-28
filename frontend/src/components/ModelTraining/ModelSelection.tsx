@@ -1,7 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
+import {
+  DLModelParameters,
+  MLModelParameters,
+  MODEL_OPTIONS,
+  ModelParameters,
+  getDefaultParameters,
+} from '../../types';
 import './ModelSelection.css';
-import { ModelParameters, getDefaultParameters } from '../../types';
 
 interface ModelSelectionProps {
   selectedModel: string;
@@ -11,56 +17,6 @@ interface ModelSelectionProps {
   configJson?: string;
   onConfigJsonChange?: (configJson: string) => void;
 }
-
-// Type guards to check parameter types safely
-const hasNeuralNetworkParams = (
-  params: ModelParameters,
-): params is ModelParameters & {
-  hiddenLayers: number;
-  hiddenUnits: number;
-  dropout: number;
-} => {
-  return 'hiddenLayers' in params && 'hiddenUnits' in params && 'dropout' in params;
-};
-
-const hasCNNParams = (
-  params: ModelParameters,
-): params is ModelParameters & {
-  kernelSize: number;
-  filters: number;
-  poolSize: number;
-} => {
-  return 'kernelSize' in params && 'filters' in params && 'poolSize' in params;
-};
-
-const hasTreeParams = (
-  params: ModelParameters,
-): params is ModelParameters & {
-  nEstimators: number;
-  maxDepth: number;
-} => {
-  return 'nEstimators' in params && 'maxDepth' in params;
-};
-
-const hasRandomForestParams = (
-  params: ModelParameters,
-): params is ModelParameters & {
-  nEstimators: number;
-  maxDepth: number;
-  minSamplesSplit: number;
-} => {
-  return hasTreeParams(params) && 'minSamplesSplit' in params;
-};
-
-const hasXGBoostParams = (
-  params: ModelParameters,
-): params is ModelParameters & {
-  nEstimators: number;
-  maxDepth: number;
-  gamma: number;
-} => {
-  return hasTreeParams(params) && 'gamma' in params;
-};
 
 const ModelSelection: React.FC<ModelSelectionProps> = ({
   selectedModel,
@@ -76,14 +32,6 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
   const [paramChangeSource, setParamChangeSource] = useState<'ui' | 'json' | 'model' | 'init'>(
     'init',
   );
-
-  const models = [
-    { id: 'LSTM', name: 'LSTM' },
-    { id: 'GRU', name: 'GRU' },
-    { id: 'CNN', name: 'CNN' },
-    { id: 'RF', name: 'Random Forest' },
-    { id: 'XGB', name: 'XGBoost' },
-  ];
 
   useEffect(() => {
     if (paramChangeSource === 'ui' || paramChangeSource === 'model') {
@@ -164,219 +112,129 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     [onConfigJsonChange, selectedModel, onModelChange],
   );
 
-  return (
-    <div className="model-selection">
-      <div className="selection-label">model selection</div>
-      <div className="div-30">
-        <div className="select-container">
-          <select
-            value={selectedModel}
-            onChange={(e) => onModelChange(e.target.value)}
-            className="model-select"
-          >
-            {models.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.name}
-              </option>
-            ))}
-          </select>
-          <div className="select-arrow">▼</div>
-        </div>
-      </div>
-
-      {selectedModel && (
-        <div className="parameter-selection">
-          <div className="parameter-label">model parameters</div>
-
+  const renderParameterInputs = () => {
+    if (selectedModel === 'LSTM' || selectedModel === 'RNN') {
+      const params = internalParameters as DLModelParameters;
+      return (
+        <>
+          <div className="parameter-group">
+            <label htmlFor="learningRate">Learning Rate:</label>
+            <input
+              type="number"
+              id="learningRate"
+              name="learningRate"
+              value={params.learningRate}
+              onChange={handleParameterChange}
+              step="0.001"
+              min="0"
+            />
+          </div>
           <div className="parameter-group">
             <label htmlFor="batchSize">Batch Size:</label>
             <input
               type="number"
               id="batchSize"
               name="batchSize"
-              value={internalParameters.batchSize}
+              value={params.batchSize}
               onChange={handleParameterChange}
               step="1"
               min="1"
             />
           </div>
-
           <div className="parameter-group">
             <label htmlFor="epochs">Epochs:</label>
             <input
               type="number"
               id="epochs"
               name="epochs"
-              value={internalParameters.epochs}
+              value={params.epochs}
               onChange={handleParameterChange}
               step="1"
               min="1"
             />
           </div>
-
+        </>
+      );
+    } else if (
+      selectedModel === 'XGBoost' ||
+      selectedModel === 'CatBoost' ||
+      selectedModel === 'LightGBM'
+    ) {
+      const params = internalParameters as MLModelParameters;
+      return (
+        <>
           <div className="parameter-group">
-            <label htmlFor="earlyStoppingPatience">Early Stopping (patience):</label>
+            <label htmlFor="iterations">Iterations:</label>
             <input
               type="number"
-              id="earlyStoppingPatience"
-              name="earlyStoppingPatience"
-              value={internalParameters.earlyStoppingPatience}
+              id="iterations"
+              name="iterations"
+              value={params.iterations}
               onChange={handleParameterChange}
               step="1"
+              min="1"
+            />
+          </div>
+          <div className="parameter-group">
+            <label htmlFor="learningRate">Learning Rate:</label>
+            <input
+              type="number"
+              id="learningRate"
+              name="learningRate"
+              value={params.learningRate}
+              onChange={handleParameterChange}
+              step="0.01"
               min="0"
             />
           </div>
+          <div className="parameter-group">
+            <label htmlFor="depth">Depth:</label>
+            <input
+              type="number"
+              id="depth"
+              name="depth"
+              value={params.depth}
+              onChange={handleParameterChange}
+              step="1"
+              min="1"
+            />
+          </div>
+        </>
+      );
+    }
+  };
 
-          {/* Neural Network specific parameters (LSTM, GRU) */}
-          {hasNeuralNetworkParams(internalParameters) && (
-            <>
-              <div className="parameter-group">
-                <label htmlFor="hiddenLayers">Hidden Layers:</label>
-                <input
-                  type="number"
-                  id="hiddenLayers"
-                  name="hiddenLayers"
-                  value={internalParameters.hiddenLayers}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              <div className="parameter-group">
-                <label htmlFor="hiddenUnits">Hidden Units:</label>
-                <input
-                  type="number"
-                  id="hiddenUnits"
-                  name="hiddenUnits"
-                  value={internalParameters.hiddenUnits}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              <div className="parameter-group">
-                <label htmlFor="dropout">Dropout:</label>
-                <input
-                  type="number"
-                  id="dropout"
-                  name="dropout"
-                  value={internalParameters.dropout}
-                  onChange={handleParameterChange}
-                  step="0.01"
-                  min="0"
-                  max="0.9"
-                />
-              </div>
-            </>
-          )}
+  return (
+    <div className="items-center gap-[10px]">
+      <div className="font-semibold mb-2 text-left">model selection</div>
+      <div className="w-[30%]">
+        <div className="relative w-[120px] mb-4">
+          <select
+            value={selectedModel}
+            onChange={(e) => onModelChange(e.target.value)}
+            className="w-full px-[10px] pr-[25px] py-[5px] appearance-none border border-[#ddd] rounded-[5px] bg-white"
+          >
+            {MODEL_OPTIONS.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-[10px] top-[75%] -translate-y-1/2 pointer-events-none text-[10px] text-[#666]">
+            ▼
+          </div>
+        </div>
+      </div>
 
-          {/* CNN specific parameters */}
-          {hasCNNParams(internalParameters) && (
-            <>
-              <div className="parameter-group">
-                <label htmlFor="kernelSize">Kernel Size:</label>
-                <input
-                  type="number"
-                  id="kernelSize"
-                  name="kernelSize"
-                  value={internalParameters.kernelSize}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              <div className="parameter-group">
-                <label htmlFor="filters">Filters:</label>
-                <input
-                  type="number"
-                  id="filters"
-                  name="filters"
-                  value={internalParameters.filters}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              <div className="parameter-group">
-                <label htmlFor="poolSize">Pool Size:</label>
-                <input
-                  type="number"
-                  id="poolSize"
-                  name="poolSize"
-                  value={internalParameters.poolSize}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-            </>
-          )}
+      {selectedModel && (
+        <div className="bg-[#f5f5f5] mt-3">
+          <div className="font-semibold mb-3 text-left text-[#333]">model parameters</div>
+          {renderParameterInputs()}
 
-          {/* Tree-based model parameters (Random Forest, XGBoost) */}
-          {hasTreeParams(internalParameters) && (
-            <>
-              <div className="parameter-group">
-                <label htmlFor="nEstimators">N Estimators:</label>
-                <input
-                  type="number"
-                  id="nEstimators"
-                  name="nEstimators"
-                  value={internalParameters.nEstimators}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              <div className="parameter-group">
-                <label htmlFor="maxDepth">Max Depth:</label>
-                <input
-                  type="number"
-                  id="maxDepth"
-                  name="maxDepth"
-                  value={internalParameters.maxDepth}
-                  onChange={handleParameterChange}
-                  step="1"
-                  min="1"
-                />
-              </div>
-              {/* Random Forest specific parameter */}
-              {hasRandomForestParams(internalParameters) && (
-                <div className="parameter-group">
-                  <label htmlFor="minSamplesSplit">Min Samples Split:</label>
-                  <input
-                    type="number"
-                    id="minSamplesSplit"
-                    name="minSamplesSplit"
-                    value={internalParameters.minSamplesSplit}
-                    onChange={handleParameterChange}
-                    step="1"
-                    min="2"
-                  />
-                </div>
-              )}
-              {/* XGBoost specific parameter */}
-              {hasXGBoostParams(internalParameters) && (
-                <div className="parameter-group">
-                  <label htmlFor="gamma">Gamma:</label>
-                  <input
-                    type="number"
-                    id="gamma"
-                    name="gamma"
-                    value={internalParameters.gamma}
-                    onChange={handleParameterChange}
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {/* JSON Configuration Display/Editor */}
-          <div className="json-config-section">
-            <div className="parameter-label">JSON Configuration</div>
+          <div className="mt-5 mt-5 border-t border-[#ddd] pt-[15px]">
+            <div className="font-semibold mb-3 text-left text-[#333]">JSON Configuration</div>
             <textarea
-              className="json-config-editor"
+              className="json-config-editor custom-scroll"
               value={
                 configJson ||
                 JSON.stringify(
