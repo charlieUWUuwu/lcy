@@ -103,6 +103,7 @@ ipcMain.handle('file:readCSV', async (_, filePath) => {
     let headers = [];
     let lineCount = 0;
     let factor = 1;
+    let skipSampling = false;
 
     rl.on('line', (line) => {
       if (line.trim() === '') return;
@@ -113,14 +114,25 @@ ipcMain.handle('file:readCSV', async (_, filePath) => {
           sampledFeatures.push([]);
         }
       } else {
-        // 預估行數用來計算下採樣因子（只執行一次）
         if (lineCount === 1) {
+          // 預估總點數
           const estimatedLines = Math.floor(fsSync.statSync(filePath).size / line.length);
           const M = headers.length - 1;
-          factor = Math.max(1, Math.ceil((estimatedLines * M) / maxTotalPoints));
+          const totalPoints = estimatedLines * M;
+
+          if (totalPoints <= maxTotalPoints) {
+            skipSampling = true;
+            factor = 1;
+            console.log(`資料量 (${totalPoints}) 小於 ${maxTotalPoints}，不進行下採樣`);
+          } else {
+            factor = Math.ceil(totalPoints / maxTotalPoints);
+            console.log(
+              `資料量 (${totalPoints}) 超過 ${maxTotalPoints}，執行下採樣，factor=${factor}`,
+            );
+          }
         }
 
-        if (lineCount % factor === 1) {
+        if (skipSampling || lineCount % factor === 1) {
           const cells = line.split(',').map((c) => c.trim());
           sampledTimestamps.push(cells[0]);
 
