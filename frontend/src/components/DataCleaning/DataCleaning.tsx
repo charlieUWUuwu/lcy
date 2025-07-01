@@ -39,45 +39,12 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     setSelectedFeatures([]);
     setSelectedLabel(null);
 
-    const fileContent = await window.electronAPI.readCSV(filePath);
-    const lines = fileContent.split(/\r?\n/).filter((line) => line.trim() !== '');
-    if (lines.length === 0) return;
+    const { headers, sampledTimestamps, sampledFeatures } =
+      await window.electronAPI.readCSV(filePath);
 
-    const headers = lines[0].split(',').map((h) => h.trim());
-    const featureHeaders = headers.slice(1); // 第一欄是 timestamp
+    if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
 
-    const rawTimestamps: string[] = [];
-    const rawFeatures: number[][] = Array.from({ length: featureHeaders.length }, () => []);
-
-    lines.slice(1).forEach((line) => {
-      const cells = line.split(',').map((c) => c.trim());
-      const timestamp = cells[0];
-      if (timestamp) rawTimestamps.push(timestamp);
-
-      featureHeaders.forEach((_, i) => {
-        const value = Number(cells[i + 1]);
-        rawFeatures[i].push(isNaN(value) ? 0 : value);
-      });
-    });
-
-    // === 下採樣邏輯 ===
-    const maxTotalPoints = 2100;
-    const N = rawTimestamps.length;
-    const M = featureHeaders.length;
-    let factor = 1;
-
-    if (N * M > maxTotalPoints) {
-      factor = Math.ceil((N * M) / maxTotalPoints);
-    }
-
-    console.log(`原始資料點數: ${N * M}，特徵數: ${M}，計算下採樣因子: ${factor}`);
-
-    const sampledTimestamps = rawTimestamps.filter((_, i) => i % factor === 0);
-    const sampledFeatures = rawFeatures.map((featureArray) =>
-      featureArray.filter((_, i) => i % factor === 0),
-    );
-
-    // 把所有 feature 合併成一個 values[]，方便傳到前端繪圖
+    // 將所有 feature 資料攤平成 values[]
     const values: number[] = [];
     sampledFeatures.forEach((featureArray) => {
       values.push(...featureArray);
@@ -85,12 +52,12 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
 
     setFileData({
       name: filePath,
-      features: featureHeaders,
+      features: headers,
       timestamps: sampledTimestamps,
       values,
     });
 
-    console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', featureHeaders.length);
+    console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
   };
 
   return (
