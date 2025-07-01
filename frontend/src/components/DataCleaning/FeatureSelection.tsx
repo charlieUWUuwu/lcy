@@ -5,7 +5,7 @@ import { SelectionConfig } from '../../types';
 interface FeatureSelectionProps {
   features: string[];
   selectedFeatures: string[];
-  onFeaturesChange: (features: string[]) => void;
+  onFeaturesChange: (features: string[], clearLabel: boolean) => void;
   configJson?: string;
   onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
 }
@@ -21,22 +21,22 @@ const FeatureSelection: React.FC<FeatureSelectionProps> = ({
       ? selectedFeatures.filter((f) => f !== feature)
       : [...selectedFeatures, feature];
 
-    updateFeatures(newSelectedFeatures);
+    updateFeatures(newSelectedFeatures, false);
   };
 
-  const updateFeatures = (newFeatures: string[]) => {
-    onFeaturesChange(newFeatures);
+  const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
+    onFeaturesChange(newFeatures, clearLabel);
     if (onSelectionConfigChange) {
       onSelectionConfigChange({ selectedFeatures: newFeatures });
     }
   };
 
   const handleSelectAll = () => {
-    updateFeatures(features);
+    updateFeatures(features, false);
   };
 
   const handleClearAll = () => {
-    updateFeatures([]);
+    updateFeatures([], true);
   };
 
   return (

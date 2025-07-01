@@ -114,8 +114,11 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
             <FeatureSelection
               features={fileData?.features || []}
               selectedFeatures={selectedFeatures}
-              onFeaturesChange={(features) => {
+              onFeaturesChange={(features, clearLabel) => {
                 setSelectedFeatures(features);
+                if (clearLabel) {
+                  setSelectedLabel(null);
+                }
               }}
             />
 
