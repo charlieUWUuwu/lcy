@@ -75,7 +75,7 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     }
   }, [configJson, paramChangeSource]);
 
-  const handleParameterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleParameterChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInternalParameters((prev) => ({
       ...prev,
@@ -131,15 +131,19 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
           </div>
           <div className="parameter-group">
             <label htmlFor="batchSize">Batch Size:</label>
-            <input
-              type="number"
+            <select
               id="batchSize"
               name="batchSize"
-              value={params.batchSize}
+              value={params.batchSize || ''}
               onChange={handleParameterChange}
-              step="1"
-              min="1"
-            />
+              className="px-2 py-1 border rounded"
+            >
+              {[16, 32, 64, 128, 256].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="parameter-group">
             <label htmlFor="epochs">Epochs:</label>
