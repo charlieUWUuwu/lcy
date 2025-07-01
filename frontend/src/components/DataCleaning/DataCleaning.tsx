@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ProcessedFileData } from '../../types';
@@ -24,10 +24,17 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   setSelectedLabel,
 }) => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOpenFile = async () => {
+    setIsLoading(true); // 開始 loading
+
+    try {
     const filePath = await window.electronAPI.openCSV();
-    if (!filePath) return;
+      if (!filePath) {
+        setIsLoading(false);
+        return;
+      }
 
     if (!filePath.endsWith('.csv')) {
       alert('請選擇 CSV 檔案');
@@ -58,6 +65,10 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     });
 
     console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
+    } catch (error) {
+      console.error('讀取 CSV 錯誤:', error);
+    }
+    setIsLoading(false); // 結束 loading
   };
 
   return (
@@ -65,10 +76,12 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       {/* Header 區塊 */}
       <div className="h-[5%] flex items-center">
         <button
-          className="bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white rounded hover:bg-blue-700 transition
+             disabled:bg-blue-300 disabled:cursor-not-allowed disabled:hover:bg-blue-300"
           onClick={handleOpenFile}
+          disabled={isLoading}
         >
-          Import
+          {isLoading ? 'Importing...' : 'Import'}
         </button>
         <div className="text-gray-600 pl-6 text-lg">{fileData?.name || 'file name'}</div>
       </div>
@@ -77,7 +90,9 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       <div className="h-[50%] flex flex-col gap-4 flex-1 overflow-auto custom-scroll">
         {/* 圖表區 */}
         <div className="h-[60%] bg-white shadow rounded-lg p-4 flex justify-center items-center">
-          {fileData ? (
+          {isLoading ? (
+            <div className="text-gray-400 text-lg">Loading...</div>
+          ) : fileData ? (
             <LineChart fileData={fileData} selectedFeatures={selectedFeatures} />
           ) : (
             <div className="text-gray-500 text-lg">尚未上傳資料</div>
