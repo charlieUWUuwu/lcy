@@ -1,5 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const fs = require('fs').promises;
+const fsSync = require('fs'); // 注意：這是非 promises 版的 fs
+const readline = require('readline');
 const { spawn } = require('child_process');
 const path = require('path');
 
@@ -89,8 +91,59 @@ ipcMain.handle('dialog:openCSV', async () => {
 });
 
 ipcMain.handle('file:readCSV', async (_, filePath) => {
-  const content = await fs.readFile(filePath, 'utf-8');
-  return content;
+  const maxTotalPoints = 2100;
+
+  return new Promise((resolve, reject) => {
+    const stream = fsSync.createReadStream(filePath, { encoding: 'utf-8' });
+    const rl = readline.createInterface({ input: stream });
+
+    const sampledTimestamps = [];
+    const sampledFeatures = [];
+
+    let headers = [];
+    let lineCount = 0;
+    let factor = 1;
+
+    rl.on('line', (line) => {
+      if (line.trim() === '') return;
+
+      if (lineCount === 0) {
+        headers = line.split(',').map((h) => h.trim());
+        for (let i = 1; i < headers.length; i++) {
+          sampledFeatures.push([]);
+        }
+      } else {
+        // 預估行數用來計算下採樣因子（只執行一次）
+        if (lineCount === 1) {
+          const estimatedLines = Math.floor(fsSync.statSync(filePath).size / line.length);
+          const M = headers.length - 1;
+          factor = Math.max(1, Math.ceil((estimatedLines * M) / maxTotalPoints));
+        }
+
+        if (lineCount % factor === 1) {
+          const cells = line.split(',').map((c) => c.trim());
+          sampledTimestamps.push(cells[0]);
+
+          for (let i = 1; i < cells.length; i++) {
+            const value = Number(cells[i]);
+            sampledFeatures[i - 1].push(isNaN(value) ? 0 : value);
+          }
+        }
+      }
+
+      lineCount++;
+    });
+
+    rl.on('close', () => {
+      resolve({
+        headers: headers.slice(1),
+        sampledTimestamps,
+        sampledFeatures,
+      });
+    });
+
+    rl.on('error', (err) => reject(err));
+  });
 });
 
 ipcMain.handle('load-image-base64', async (event, filePath) => {
