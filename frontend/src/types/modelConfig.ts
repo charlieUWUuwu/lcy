@@ -32,29 +32,29 @@ export interface TrainingConfig {
 // Default parameter values for each model type
 export const defaultParameters: Record<string, ModelParameters> = {
   LSTM: {
-    epochs: 10,
-    learningRate: 0.001,
-    batchSize: 32,
+    epochs: 5,
+    learningRate: 0.1,
+    batchSize: 128,
   },
   RNN: {
-    epochs: 10,
-    learningRate: 0.0001,
-    batchSize: 16,
+    epochs: 5,
+    learningRate: 0.1,
+    batchSize: 128,
   },
   XGBoost: {
     iterations: 300,
-    learningRate: 0.1,
+    learningRate: 0.05,
     depth: 10,
   },
   CatBoost: {
-    iterations: 100,
-    learningRate: 0.01,
-    depth: 5,
+    iterations: 300,
+    learningRate: 0.05,
+    depth: 10,
   },
   LightGBM: {
-    iterations: 50,
-    learningRate: 0.01,
-    depth: 5,
+    iterations: 300,
+    learningRate: 0.05,
+    depth: 10,
   },
 };
 
