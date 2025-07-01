@@ -30,14 +30,23 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     setIsLoading(true); // 開始 loading
 
     try {
-      const filePath = await window.electronAPI.openCSV();
-      if (!filePath) {
+      const result = await window.electronAPI.openCSV();
+
+      if (!result) {
         setIsLoading(false);
         return;
       }
 
-      if (!filePath.endsWith('.csv')) {
+      if ('error' in result) {
+        alert(result.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const filePath = result.filePath;
+      if (!filePath || !filePath.endsWith('.csv')) {
         alert('請選擇 CSV 檔案');
+        setIsLoading(false);
         return;
       }
 
