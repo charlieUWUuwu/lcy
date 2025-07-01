@@ -1,11 +1,20 @@
 export {};
 
+interface OpenCSVResult {
+  filePath?: string;
+  error?: string;
+}
+
 declare global {
   interface Window {
     electronAPI: {
       selectDirectory: () => Promise<string | null>;
-      openCSV: () => Promise<string>;
-      readCSV: (filePath: string) => Promise<string>;
+      openCSV: () => Promise<OpenCSVResult | null>;
+      readCSV: (filePath: string) => Promise<{
+        headers: string[];
+        sampledTimestamps: string[];
+        sampledFeatures: number[][];
+      }>;
       loadImageBase64: (filePath: string) => Promise<string>;
     };
   }

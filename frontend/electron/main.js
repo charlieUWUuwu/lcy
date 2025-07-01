@@ -1,10 +1,14 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const fs = require('fs').promises;
+const fsSync = require('fs'); // 注意：這是非 promises 版的 fs
+const readline = require('readline');
 const { spawn } = require('child_process');
 const path = require('path');
 
 let backendProcess;
 const isDev = !app.isPackaged;
+
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -97,12 +101,91 @@ ipcMain.handle('dialog:openCSV', async () => {
     properties: ['openFile'],
     filters: [{ name: 'CSV Files', extensions: ['csv'] }],
   });
-  return result.canceled ? null : result.filePaths[0];
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const filePath = result.filePaths[0];
+
+  try {
+    const stat = await fs.stat(filePath);
+    if (stat.size > MAX_FILE_SIZE_BYTES) {
+      const maxSizeGB = (MAX_FILE_SIZE_BYTES / 1024 ** 3).toFixed(2);
+      return { error: `檔案大小不可超過 ${maxSizeGB} GB` };
+    }
+    return { filePath };
+  } catch (err) {
+    console.error('讀取檔案資訊失敗:', err);
+    return { error: '無法讀取檔案資訊' };
+  }
 });
 
 ipcMain.handle('file:readCSV', async (_, filePath) => {
-  const content = await fs.readFile(filePath, 'utf-8');
-  return content;
+  const maxTotalPoints = 2100;
+
+  return new Promise((resolve, reject) => {
+    const stream = fsSync.createReadStream(filePath, { encoding: 'utf-8' });
+    const rl = readline.createInterface({ input: stream });
+
+    const sampledTimestamps = [];
+    const sampledFeatures = [];
+
+    let headers = [];
+    let lineCount = 0;
+    let factor = 1;
+    let skipSampling = false;
+
+    rl.on('line', (line) => {
+      if (line.trim() === '') return;
+
+      if (lineCount === 0) {
+        headers = line.split(',').map((h) => h.trim());
+        for (let i = 1; i < headers.length; i++) {
+          sampledFeatures.push([]);
+        }
+      } else {
+        if (lineCount === 1) {
+          // 預估總點數
+          const estimatedLines = Math.floor(fsSync.statSync(filePath).size / line.length);
+          const M = headers.length - 1;
+          const totalPoints = estimatedLines * M;
+
+          if (totalPoints <= maxTotalPoints) {
+            skipSampling = true;
+            factor = 1;
+            console.log(`資料量 (${totalPoints}) 小於 ${maxTotalPoints}，不進行下採樣`);
+          } else {
+            factor = Math.ceil(totalPoints / maxTotalPoints);
+            console.log(
+              `資料量 (${totalPoints}) 超過 ${maxTotalPoints}，執行下採樣，factor=${factor}`,
+            );
+          }
+        }
+
+        if (skipSampling || lineCount % factor === 1) {
+          const cells = line.split(',').map((c) => c.trim());
+          sampledTimestamps.push(cells[0]);
+
+          for (let i = 1; i < cells.length; i++) {
+            const value = Number(cells[i]);
+            sampledFeatures[i - 1].push(isNaN(value) ? 0 : value);
+          }
+        }
+      }
+
+      lineCount++;
+    });
+
+    rl.on('close', () => {
+      resolve({
+        headers: headers.slice(1),
+        sampledTimestamps,
+        sampledFeatures,
+      });
+    });
+
+    rl.on('error', (err) => reject(err));
+  });
 });
 
 ipcMain.handle('load-image-base64', async (event, filePath) => {

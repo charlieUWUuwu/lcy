@@ -24,6 +24,7 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   setSelectedLabel,
 }) => {
   const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSelectFolder = async () => {
@@ -37,71 +38,57 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   };
 
   const handleOpenFile = async () => {
-    const filePath = await window.electronAPI.openCSV();
-    if (!filePath) return;
+    setIsLoading(true); // 開始 loading
 
-    if (!filePath.endsWith('.csv')) {
-      alert('請選擇 CSV 檔案');
-      return;
-    }
+    try {
+      const result = await window.electronAPI.openCSV();
 
-    // 清空狀態（清除圖表與特徵選擇）
-    setFileData(null);
-    setSelectedFeatures([]);
-    setSelectedLabel(null);
+      if (!result) {
+        setIsLoading(false);
+        return;
+      }
 
-    const fileContent = await window.electronAPI.readCSV(filePath);
-    const lines = fileContent.split(/\r?\n/).filter((line) => line.trim() !== '');
-    if (lines.length === 0) return;
+      if ('error' in result) {
+        alert(result.error);
+        setIsLoading(false);
+        return;
+      }
 
-    const headers = lines[0].split(',').map((h) => h.trim());
-    const featureHeaders = headers.slice(1); // 第一欄是 timestamp
+      const filePath = result.filePath;
+      if (!filePath || !filePath.endsWith('.csv')) {
+        alert('請選擇 CSV 檔案');
+        setIsLoading(false);
+        return;
+      }
 
-    const rawTimestamps: string[] = [];
-    const rawFeatures: number[][] = Array.from({ length: featureHeaders.length }, () => []);
+      // 清空狀態（清除圖表與特徵選擇）
+      setFileData(null);
+      setSelectedFeatures([]);
+      setSelectedLabel(null);
 
-    lines.slice(1).forEach((line) => {
-      const cells = line.split(',').map((c) => c.trim());
-      const timestamp = cells[0];
-      if (timestamp) rawTimestamps.push(timestamp);
+      const { headers, sampledTimestamps, sampledFeatures } =
+        await window.electronAPI.readCSV(filePath);
 
-      featureHeaders.forEach((_, i) => {
-        const value = Number(cells[i + 1]);
-        rawFeatures[i].push(isNaN(value) ? 0 : value);
+      if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
+
+      // 將所有 feature 資料攤平成 values[]
+      const values: number[] = [];
+      sampledFeatures.forEach((featureArray) => {
+        values.push(...featureArray);
       });
-    });
 
-    // === 下採樣邏輯 ===
-    const maxTotalPoints = 2100;
-    const N = rawTimestamps.length;
-    const M = featureHeaders.length;
-    let factor = 1;
+      setFileData({
+        name: filePath,
+        features: headers,
+        timestamps: sampledTimestamps,
+        values,
+      });
 
-    if (N * M > maxTotalPoints) {
-      factor = Math.ceil((N * M) / maxTotalPoints);
+      console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
+    } catch (error) {
+      console.error('讀取 CSV 錯誤:', error);
     }
-
-    console.log(`原始資料點數: ${N * M}，特徵數: ${M}，計算下採樣因子: ${factor}`);
-
-    const sampledTimestamps = rawTimestamps.filter((_, i) => i % factor === 0);
-    const sampledFeatures = rawFeatures.map((featureArray) =>
-      featureArray.filter((_, i) => i % factor === 0),
-    );
-
-    // 把所有 feature 合併成一個 values[]，方便傳到前端繪圖
-    const values: number[] = [];
-    sampledFeatures.forEach((featureArray) => {
-      values.push(...featureArray);
-    });
-
-    setFileData({
-      name: filePath,
-      features: featureHeaders,
-      timestamps: sampledTimestamps,
-      values,
-    });
-
-    console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', featureHeaders.length);
+    setIsLoading(false); // 結束 loading
   };
 
   return (
@@ -109,10 +96,12 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       {/* Header 區塊 */}
       <div className="h-[5%] flex items-center">
         <button
-          className="bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white rounded hover:bg-blue-700 transition
+             disabled:bg-blue-300 disabled:cursor-not-allowed disabled:hover:bg-blue-300"
           onClick={handleOpenFile}
+          disabled={isLoading}
         >
-          Import
+          {isLoading ? 'Importing...' : 'Import'}
         </button>
         <div className="text-gray-600 pl-6 text-lg">{fileData?.name || 'file name'}</div>
       </div>
@@ -121,7 +110,9 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       <div className="h-[50%] flex flex-col gap-4 flex-1 overflow-auto custom-scroll">
         {/* 圖表區 */}
         <div className="h-[60%] bg-white shadow rounded-lg p-4 flex justify-center items-center">
-          {fileData ? (
+          {isLoading ? (
+            <div className="text-gray-400 text-lg">Loading...</div>
+          ) : fileData ? (
             <LineChart fileData={fileData} selectedFeatures={selectedFeatures} />
           ) : (
             <div className="text-gray-500 text-lg">尚未上傳資料</div>
@@ -163,8 +154,11 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
         )}
       </div>
       <button
-        className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+        className="px-6 py-2 bg-green-600 text-white rounded transition
+             hover:bg-green-700
+             disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
         onClick={() => navigate('/model-training')}
+          disabled={selectedFeatures.length === 0 || selectedLabel === null}
       >
         Next
       </button>
