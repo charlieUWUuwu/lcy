@@ -8,6 +8,8 @@ const path = require('path');
 let backendProcess;
 const isDev = !app.isPackaged;
 
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
@@ -87,7 +89,23 @@ ipcMain.handle('dialog:openCSV', async () => {
     properties: ['openFile'],
     filters: [{ name: 'CSV Files', extensions: ['csv'] }],
   });
-  return result.canceled ? null : result.filePaths[0];
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  const filePath = result.filePaths[0];
+
+  try {
+    const stat = await fs.stat(filePath);
+    if (stat.size > MAX_FILE_SIZE_BYTES) {
+      const maxSizeGB = (MAX_FILE_SIZE_BYTES / 1024 ** 3).toFixed(2);
+      return { error: `檔案大小不可超過 ${maxSizeGB} GB` };
+    }
+    return { filePath };
+  } catch (err) {
+    console.error('讀取檔案資訊失敗:', err);
+    return { error: '無法讀取檔案資訊' };
+  }
 });
 
 ipcMain.handle('file:readCSV', async (_, filePath) => {
