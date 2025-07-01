@@ -30,41 +30,41 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     setIsLoading(true); // 開始 loading
 
     try {
-    const filePath = await window.electronAPI.openCSV();
+      const filePath = await window.electronAPI.openCSV();
       if (!filePath) {
         setIsLoading(false);
         return;
       }
 
-    if (!filePath.endsWith('.csv')) {
-      alert('請選擇 CSV 檔案');
-      return;
-    }
+      if (!filePath.endsWith('.csv')) {
+        alert('請選擇 CSV 檔案');
+        return;
+      }
 
-    // 清空狀態（清除圖表與特徵選擇）
-    setFileData(null);
-    setSelectedFeatures([]);
-    setSelectedLabel(null);
+      // 清空狀態（清除圖表與特徵選擇）
+      setFileData(null);
+      setSelectedFeatures([]);
+      setSelectedLabel(null);
 
-    const { headers, sampledTimestamps, sampledFeatures } =
-      await window.electronAPI.readCSV(filePath);
+      const { headers, sampledTimestamps, sampledFeatures } =
+        await window.electronAPI.readCSV(filePath);
 
-    if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
+      if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
 
-    // 將所有 feature 資料攤平成 values[]
-    const values: number[] = [];
-    sampledFeatures.forEach((featureArray) => {
-      values.push(...featureArray);
-    });
+      // 將所有 feature 資料攤平成 values[]
+      const values: number[] = [];
+      sampledFeatures.forEach((featureArray) => {
+        values.push(...featureArray);
+      });
 
-    setFileData({
-      name: filePath,
-      features: headers,
-      timestamps: sampledTimestamps,
-      values,
-    });
+      setFileData({
+        name: filePath,
+        features: headers,
+        timestamps: sampledTimestamps,
+        values,
+      });
 
-    console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
+      console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
     } catch (error) {
       console.error('讀取 CSV 錯誤:', error);
     }
@@ -124,8 +124,11 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       {/* 底部操作按鈕 */}
       <div className="h-[5%] flex justify-end">
         <button
-          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          className="px-6 py-2 bg-green-600 text-white rounded transition
+             hover:bg-green-700
+             disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
           onClick={() => navigate('/model-training')}
+          disabled={selectedFeatures.length === 0 || selectedLabel === null}
         >
           Next
         </button>
