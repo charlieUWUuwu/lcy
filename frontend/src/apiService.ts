@@ -105,3 +105,68 @@ export const cleanData = async (config: string): Promise<any> => {
     throw error;
   }
 };
+
+export const generateFeatureAnalysis = async (selectedFeatures: string[], selectedLabel: string): Promise<{
+  all: string;
+  positive: string;
+  negative: string;
+  status: string;
+}> => {
+  const response = await fetch('http://127.0.0.1:3500/api/feature-analysis', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      selectedFeatures,
+      selectedLabel
+    }),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to generate feature analysis');
+  }
+  
+  return response.json();
+};
+
+export const getTopFeatures = async (
+  selectedLabel: string, 
+  allFeatures: string[], 
+  topN: number = 10, 
+  threshold: number = 0.4
+): Promise<{
+  top_features: string[];
+  correlations: Record<string, number>;
+  correlation_details: Record<string, {
+    correlation: number;
+    abs_correlation: number;
+    rank: number;
+    meets_threshold: boolean;
+  }>;
+  total_features_analyzed: number;
+  threshold_used: number;
+  features_above_threshold: number;
+  used_threshold_filter: boolean;
+  status: string;
+}> => {
+  const response = await fetch(`${API_BASE_URL}/api/top-features`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      selectedLabel,
+      allFeatures,
+      topN,
+      threshold
+    }),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to get top features');
+  }
+  
+  return response.json();
+};
