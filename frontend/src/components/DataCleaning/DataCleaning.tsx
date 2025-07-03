@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { generateFeatureAnalysis } from '../../apiService';
 
 import { ProcessedFileData } from '../../types';
 import LineChart from '../LineChart';
@@ -13,6 +14,11 @@ interface DataCleaningProps {
   setSelectedFeatures: (features: string[]) => void;
   selectedLabel: string | null;
   setSelectedLabel: (label: string | null) => void;
+  setImages: React.Dispatch<React.SetStateAction<{
+    all: string;
+    positive: string;
+    negative: string;
+  } | null>>;
 }
 
 const DataCleaning: React.FC<DataCleaningProps> = ({
@@ -22,8 +28,10 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   setSelectedFeatures,
   selectedLabel,
   setSelectedLabel,
+  setImages,
 }) => {
   const navigate = useNavigate();
+  const [isGenerating, setIsGenerating] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleOpenFile = async () => {
@@ -80,6 +88,33 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     setIsLoading(false); // 結束 loading
   };
 
+  const handleNext = async () => {
+    if (!selectedFeatures.length || !selectedLabel) {
+      alert('Please select features and a label before proceeding');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // Generate feature analysis before navigating
+      const results = await generateFeatureAnalysis(selectedFeatures, selectedLabel);
+      setImages({
+        all: results.all,
+        positive: results.positive,
+        negative: results.negative,
+      });
+      console.log('Feature analysis completed:', results);
+      
+      // Navigate to model training page
+      navigate('/model-training');
+    } catch (error) {
+      console.error('Error generating feature analysis:', error);
+      alert('Failed to generate feature analysis. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full space-y-4">
       {/* Header 區塊 */}
@@ -114,6 +149,7 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
             <FeatureSelection
               features={fileData?.features || []}
               selectedFeatures={selectedFeatures}
+              selectedLabel={selectedLabel}
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
               }}
@@ -136,10 +172,10 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
           className="px-6 py-2 bg-green-600 text-white rounded transition
              hover:bg-green-700
              disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
-          onClick={() => navigate('/model-training')}
-          disabled={selectedFeatures.length === 0 || selectedLabel === null}
+          onClick={handleNext}
+          disabled={selectedFeatures.length === 0 || selectedLabel === null || isGenerating}
         >
-          Next
+          {isGenerating ? 'Generating Analysis...' : 'Next'}
         </button>
       </div>
     </div>
