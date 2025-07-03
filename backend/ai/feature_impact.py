@@ -6,19 +6,28 @@ import seaborn as sns
 import os
 from datetime import datetime
 
-def get_top_features(csv_pth, selected_label, all_features, top_n=10, threshold=0.4):
+DEFAULT_TOP_N = 10
+DEFAULT_THRESHOLD = 0.4
+
+def get_top_features(csv_pth, selected_label, all_features):
     """
     Calculate top N features with correlations >threshold to the selected label
     If not enough features meet the threshold, use all features >threshold
     """
     
     try:
+        top_n = DEFAULT_TOP_N
+        if len(all_features) < top_n:
+            top_n = len(all_features)  # Use all features if less than top_n available
+
         data = pd.read_csv(csv_pth)
         
         # Get available features (exclude timestamp and the label itself)
-        available_features = [col for col in all_features 
-                            if col in data.columns and col != selected_label and col != 'timestamp']
+        # available_features = [col for col in all_features 
+        #                     if col in data.columns and col != selected_label and col != 'timestamp'] # get first column is better
         
+        available_features = all_features[1:]
+
         if not available_features:
             raise Exception("No valid features found for analysis")
         
@@ -32,7 +41,7 @@ def get_top_features(csv_pth, selected_label, all_features, top_n=10, threshold=
             raise Exception("No valid correlations could be calculated")
         
         # Filter features with absolute correlation > threshold
-        strong_correlations = correlations[correlations.abs() > threshold]
+        strong_correlations = correlations[correlations.abs() > DEFAULT_THRESHOLD]
         
         if len(strong_correlations) == 0:
             # If no features meet threshold, fall back to top features by absolute correlation
@@ -56,7 +65,7 @@ def get_top_features(csv_pth, selected_label, all_features, top_n=10, threshold=
                 'correlation': float(correlations[feature]),
                 'abs_correlation': float(abs(correlations[feature])),
                 'rank': int(i + 1),  # Convert to int
-                'meets_threshold': bool(abs(correlations[feature]) > threshold)  # Explicitly convert to bool
+                'meets_threshold': bool(abs(correlations[feature]) > DEFAULT_THRESHOLD)  # Explicitly convert to bool
             }
         
         return {
@@ -64,7 +73,7 @@ def get_top_features(csv_pth, selected_label, all_features, top_n=10, threshold=
             'correlations': {feature: float(correlations[feature]) for feature in top_features},
             'correlation_details': correlation_details,
             'total_features_analyzed': int(len(available_features)),  # Convert to int
-            'threshold_used': float(threshold),  # Convert to float
+            'threshold_used': float(DEFAULT_THRESHOLD),  # Convert to float
             'features_above_threshold': int(len(strong_correlations)),  # Convert to int
             'used_threshold_filter': bool(used_threshold)  # Explicitly convert to bool
         }
