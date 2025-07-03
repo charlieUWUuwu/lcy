@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-
+import { SelectionConfig } from '../../types';
 import { getTopFeatures } from '../../apiService';
 
 interface Props {
   features: string[];
   selectedFeatures: string[];
-  onFeaturesChange: (features: string[]) => void;
+  onFeaturesChange: (features: string[], clearLabel: boolean) => void;
+  onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
   selectedLabel?: string | null;
   csv_pth: string;
 }
@@ -21,6 +22,7 @@ const FeatureSelection: React.FC<Props> = ({
   features,
   selectedFeatures,
   onFeaturesChange,
+  onSelectionConfigChange,
   selectedLabel,
   csv_pth,
 }) => {
@@ -35,12 +37,40 @@ const FeatureSelection: React.FC<Props> = ({
     usedThresholdFilter: boolean;
   } | null>(null);
 
+  const handleFeatureToggle = (feature: string) => {
+    const newSelectedFeatures = selectedFeatures.includes(feature)
+      ? selectedFeatures.filter((f) => f !== feature)
+      : [...selectedFeatures, feature];
+
+    updateFeatures(newSelectedFeatures, false);
+  };
+
+    const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
+    onFeaturesChange(newFeatures, clearLabel);
+    if (onSelectionConfigChange) {
+      onSelectionConfigChange({ selectedFeatures: newFeatures });
+    }
+  };
+
+  const getFeatureDisplayInfo = (feature: string) => {
+    if (correlationDetails[feature]) {
+      const details = correlationDetails[feature];
+      return {
+        rank: details.rank,
+        correlation: details.correlation,
+        meetsThreshold: details.meets_threshold,
+        isTop: true,
+      };
+    }
+    return { isTop: false };
+  };
+
   const handleSelectAll = () => {
-    onFeaturesChange(features);
+    onFeaturesChange(features, false);
   };
 
   const handleDeselectAll = () => {
-    onFeaturesChange([]);
+    onFeaturesChange([], true);
     setTopFeatures([]);
     setCorrelationDetails({});
     setAnalysisInfo(null);
@@ -61,7 +91,7 @@ const FeatureSelection: React.FC<Props> = ({
       newSelectedFeatures.push(selectedLabel);
 
       // Update the selected features to the recommended ones
-      onFeaturesChange(newSelectedFeatures);
+      onFeaturesChange(newSelectedFeatures, false);
 
       // Store analysis results for highlighting
       setTopFeatures(result.top_features);
@@ -100,28 +130,6 @@ const FeatureSelection: React.FC<Props> = ({
     } finally {
       setIsCalculating(false);
     }
-  };
-
-  const handleFeatureToggle = (feature: string) => {
-    const isSelected = selectedFeatures.includes(feature);
-    if (isSelected) {
-      onFeaturesChange(selectedFeatures.filter((f) => f !== feature));
-    } else {
-      onFeaturesChange([...selectedFeatures, feature]);
-    }
-  };
-
-  const getFeatureDisplayInfo = (feature: string) => {
-    if (correlationDetails[feature]) {
-      const details = correlationDetails[feature];
-      return {
-        rank: details.rank,
-        correlation: details.correlation,
-        meetsThreshold: details.meets_threshold,
-        isTop: true,
-      };
-    }
-    return { isTop: false };
   };
 
   return (
