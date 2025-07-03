@@ -153,6 +153,7 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
               }}
+              csv_pth={fileData?.name || ''}
             />
 
             <LabelSelection
