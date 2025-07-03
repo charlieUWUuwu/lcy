@@ -7,6 +7,7 @@ interface Props {
   selectedFeatures: string[];
   onFeaturesChange: (features: string[]) => void;
   selectedLabel?: string | null;
+  csv_pth: string;
 }
 
 interface CorrelationDetails {
@@ -21,6 +22,7 @@ const FeatureSelection: React.FC<Props> = ({
   selectedFeatures,
   onFeaturesChange,
   selectedLabel,
+  csv_pth,
 }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [topFeatures, setTopFeatures] = useState<string[]>([]);
@@ -52,7 +54,7 @@ const FeatureSelection: React.FC<Props> = ({
 
     setIsCalculating(true);
     try {
-      const result = await getTopFeatures(selectedLabel, features, 10, 0.4);
+      const result = await getTopFeatures(csv_pth, selectedLabel, features);
 
       // Keep the selected label in the feature selection if it was previously selected
       let newSelectedFeatures = [...result.top_features];

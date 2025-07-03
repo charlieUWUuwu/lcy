@@ -125,29 +125,28 @@ export const generateFeatureAnalysis = async (
       selectedLabel,
     }),
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to generate feature analysis');
   }
-  
+
   return response.json();
 };
 
 export const getTopFeatures = async (
-  selectedLabel: string, 
-  allFeatures: string[], 
-  topN: number = 10, 
-  threshold: number = 0.4
+  csv_pth: string,
+  selectedLabel: string,
+  allFeatures: string[],
 ): Promise<{
   top_features: string[];
   correlations: Record<string, number>;
   correlation_details: Record<
     string,
     {
-    correlation: number;
-    abs_correlation: number;
-    rank: number;
-    meets_threshold: boolean;
+      correlation: number;
+      abs_correlation: number;
+      rank: number;
+      meets_threshold: boolean;
     }
   >;
   total_features_analyzed: number;
@@ -162,17 +161,16 @@ export const getTopFeatures = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      csv_pth,
       selectedLabel,
       allFeatures,
-      topN,
-      threshold
     }),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to get top features');
   }
-  
+
   return response.json();
 };
