@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { SelectionConfig } from '../../types';
+
 import { getTopFeatures } from '../../apiService';
+import { SelectionConfig } from '../../types';
 
 interface Props {
   csv_pth: string;
@@ -87,7 +88,7 @@ const FeatureSelection: React.FC<Props> = ({
       const result = await getTopFeatures(csv_pth, selectedLabel, selectedFeatures);
 
       // Keep the selected label in the feature selection if it was previously selected
-      let newSelectedFeatures = [...result.top_features];
+      const newSelectedFeatures = [...result.top_features];
       newSelectedFeatures.push(selectedLabel);
 
       // Update the selected features to the recommended ones

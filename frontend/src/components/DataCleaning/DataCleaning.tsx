@@ -193,12 +193,17 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
         {saveFolderPath && (
           <div className="text-sm text-gray-600 max-w-[400px] truncate">{saveFolderPath}</div>
         )}
-      <button
-        className="px-6 py-2 bg-green-600 text-white rounded transition
+        <button
+          className="px-6 py-2 bg-green-600 text-white rounded transition
              hover:bg-green-700
              disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
           onClick={() => navigate('/model-training')}
-          disabled={selectedFeatures.length === 0 || selectedLabel === null || isGenerating}
+          disabled={
+            selectedFeatures.length === 0 ||
+            selectedLabel === null ||
+            isGenerating ||
+            saveFolderPath === null
+          }
         >
           {isGenerating ? 'Generating Analysis...' : 'Next'}
         </button>
