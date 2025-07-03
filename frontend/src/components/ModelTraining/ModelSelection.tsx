@@ -75,14 +75,47 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
     }
   }, [configJson, paramChangeSource]);
 
-  const handleParameterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleParameterChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      const parsed = parseFloat(value);
+      const key = name as keyof ModelParameters;
+
+      setInternalParameters((prev) => ({
+        ...prev,
+        [key]: isNaN(parsed) ? prev[key] : parsed,
+      }));
+
+      setParamChangeSource('ui');
+    },
+    [],
+  );
+
+  // 當失焦時，自動修正非法值
+  const handleParameterBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value, min, max } = e.target;
+
+    const parsed = parseFloat(value);
+    const minValue = parseFloat(min);
+    const maxValue = parseFloat(max);
+
+    let finalValue = parsed;
+
+    if (isNaN(parsed)) {
+      finalValue = minValue;
+    } else if (parsed < minValue) {
+      // 低於最小值就設為最小值
+      finalValue = minValue;
+    } else if (parsed > maxValue) {
+      // 高於最大值就設為最大值
+      finalValue = maxValue;
+    }
+
     setInternalParameters((prev) => ({
       ...prev,
-      [name]: parseFloat(value),
+      [name]: finalValue,
     }));
-    setParamChangeSource('ui');
-  }, []);
+  };
 
   const handleJsonConfigChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -123,23 +156,29 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="learningRate"
               name="learningRate"
-              value={params.learningRate}
+              value={params.learningRate || ''}
               onChange={handleParameterChange}
+              onBlur={handleParameterBlur}
               step="0.001"
-              min="0"
+              min="0.001"
+              max="0.9"
             />
           </div>
           <div className="parameter-group">
             <label htmlFor="batchSize">Batch Size:</label>
-            <input
-              type="number"
+            <select
               id="batchSize"
               name="batchSize"
-              value={params.batchSize}
+              value={params.batchSize || ''}
               onChange={handleParameterChange}
-              step="1"
-              min="1"
-            />
+              className="px-2 py-1 border rounded"
+            >
+              {[16, 32, 64, 128, 256].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="parameter-group">
             <label htmlFor="epochs">Epochs:</label>
@@ -147,10 +186,12 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="epochs"
               name="epochs"
-              value={params.epochs}
+              value={params.epochs || ''}
               onChange={handleParameterChange}
+              onBlur={handleParameterBlur}
               step="1"
               min="1"
+              max="10"
             />
           </div>
         </>
@@ -169,10 +210,12 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="iterations"
               name="iterations"
-              value={params.iterations}
+              value={params.iterations || ''}
               onChange={handleParameterChange}
+              onBlur={handleParameterBlur}
               step="1"
-              min="1"
+              min="300"
+              max="600"
             />
           </div>
           <div className="parameter-group">
@@ -181,10 +224,12 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="learningRate"
               name="learningRate"
-              value={params.learningRate}
+              value={params.learningRate || ''}
               onChange={handleParameterChange}
+              onBlur={handleParameterBlur}
               step="0.01"
-              min="0"
+              min="0.01"
+              max="0.1"
             />
           </div>
           <div className="parameter-group">
@@ -193,10 +238,12 @@ const ModelSelection: React.FC<ModelSelectionProps> = ({
               type="number"
               id="depth"
               name="depth"
-              value={params.depth}
+              value={params.depth || ''}
               onChange={handleParameterChange}
+              onBlur={handleParameterBlur}
               step="1"
-              min="1"
+              min="5"
+              max="15"
             />
           </div>
         </>
