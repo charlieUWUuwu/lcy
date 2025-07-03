@@ -43,7 +43,7 @@ const FeatureSelection: React.FC<Props> = ({
     setAnalysisInfo(null);
   };
 
-  const handleCalculateTop10 = async () => {
+  const handleCalculateTop = async () => {
     if (!selectedLabel) {
       alert('請先選擇一個標籤');
       return;
@@ -53,8 +53,12 @@ const FeatureSelection: React.FC<Props> = ({
     try {
       const result = await getTopFeatures(selectedLabel, features, 10, 0.4);
       
+      // Keep the selected label in the feature selection if it was previously selected
+      let newSelectedFeatures = [...result.top_features];
+      newSelectedFeatures.push(selectedLabel);
+
       // Update the selected features to the recommended ones
-      onFeaturesChange(result.top_features);
+      onFeaturesChange(newSelectedFeatures);
       
       // Store analysis results for highlighting
       setTopFeatures(result.top_features);
@@ -134,7 +138,7 @@ const FeatureSelection: React.FC<Props> = ({
             全部取消
           </button>
           <button
-            onClick={handleCalculateTop10}
+            onClick={handleCalculateTop}
             disabled={isCalculating}
             className={`px-3 py-1 text-sm rounded transition-colors ${
               isCalculating
