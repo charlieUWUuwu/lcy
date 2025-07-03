@@ -22,34 +22,35 @@ class NumpyEncoder(json.JSONEncoder):
             return bool(obj)
         return super(NumpyEncoder, self).default(obj)
 
-@app.route('/api/feature-analysis', methods=['POST'])
-def feature_analysis():
-    try:
-        data = request.get_json()
-        selected_features = data.get('selectedFeatures', [])
-        selected_label = data.get('selectedLabel')
+# @app.route('/api/feature-analysis', methods=['POST'])
+# def feature_analysis():
+#     try:
+#         data = request.get_json()
+#         selected_features = data.get('selectedFeatures', [])
+#         selected_label = data.get('selectedLabel')
+#         save_path = data.get(csv_path, '')
         
-        if not selected_features:
-            return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
+#         if not selected_features:
+#             return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
         
-        if not selected_label:
-            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
+#         if not selected_label:
+#             return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
         
-        # Run the feature analysis with selected features and label
-        image_paths = feature_impact(selected_features, selected_label)
+#         # Run the feature analysis with selected features and label
+#         image_paths = feature_impact(selected_features, selected_label)
         
-        # Convert absolute paths to relative URLs for frontend
-        base_url = "file:///"
-        results = {
-            'all': base_url + image_paths['all'].replace('\\', '/'),
-            'positive': base_url + image_paths.get('positive', '').replace('\\', '/'),
-            'negative': base_url + image_paths.get('negative', '').replace('\\', '/'),
-            'status': 'completed'
-        }
+#         # # Convert absolute paths to relative URLs for frontend
+#         # base_url = "file:///"
+#         # results = {
+#         #     'all': base_url + image_paths['all'].replace('\\', '/'),
+#         #     'positive': base_url + image_paths.get('positive', '').replace('\\', '/'),
+#         #     'negative': base_url + image_paths.get('negative', '').replace('\\', '/'),
+#         #     'status': 'completed'
+#         # }
         
-        return jsonify(results)
-    except Exception as e:
-        return jsonify({'error': str(e), 'status': 'failed'}), 500
+#         return jsonify(results)
+#     except Exception as e:
+#         return jsonify({'error': str(e), 'status': 'failed'}), 500
     
 @app.route('/api/top-features', methods=['POST'])
 def top_features():
