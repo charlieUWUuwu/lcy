@@ -106,7 +106,10 @@ export const cleanData = async (config: string): Promise<any> => {
   }
 };
 
-export const generateFeatureAnalysis = async (selectedFeatures: string[], selectedLabel: string): Promise<{
+export const generateFeatureAnalysis = async (
+  selectedFeatures: string[],
+  selectedLabel: string,
+): Promise<{
   all: string;
   positive: string;
   negative: string;
@@ -119,31 +122,33 @@ export const generateFeatureAnalysis = async (selectedFeatures: string[], select
     },
     body: JSON.stringify({
       selectedFeatures,
-      selectedLabel
+      selectedLabel,
     }),
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to generate feature analysis');
   }
-  
+
   return response.json();
 };
 
 export const getTopFeatures = async (
-  selectedLabel: string, 
-  allFeatures: string[], 
-  topN: number = 10, 
-  threshold: number = 0.4
+  csv_pth: string,
+  selectedLabel: string,
+  allFeatures: string[],
 ): Promise<{
   top_features: string[];
   correlations: Record<string, number>;
-  correlation_details: Record<string, {
-    correlation: number;
-    abs_correlation: number;
-    rank: number;
-    meets_threshold: boolean;
-  }>;
+  correlation_details: Record<
+    string,
+    {
+      correlation: number;
+      abs_correlation: number;
+      rank: number;
+      meets_threshold: boolean;
+    }
+  >;
   total_features_analyzed: number;
   threshold_used: number;
   features_above_threshold: number;
@@ -156,17 +161,16 @@ export const getTopFeatures = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      csv_pth,
       selectedLabel,
       allFeatures,
-      topN,
-      threshold
     }),
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || 'Failed to get top features');
   }
-  
+
   return response.json();
 };

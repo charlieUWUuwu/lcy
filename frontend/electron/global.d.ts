@@ -8,6 +8,7 @@ interface OpenCSVResult {
 declare global {
   interface Window {
     electronAPI: {
+      selectDirectory: () => Promise<string | null>;
       openCSV: () => Promise<OpenCSVResult | null>;
       readCSV: (filePath: string) => Promise<{
         headers: string[];

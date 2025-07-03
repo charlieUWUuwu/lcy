@@ -84,6 +84,18 @@ app.on('window-all-closed', () => {
 });
 
 // 處理 IPC 事件
+ipcMain.handle('dialog:selectDirectory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  return result.filePaths[0]; // 回傳所選資料夾的絕對路徑
+});
+
 ipcMain.handle('dialog:openCSV', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],

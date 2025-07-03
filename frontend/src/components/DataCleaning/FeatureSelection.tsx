@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { SelectionConfig } from '../../types';
 import { getTopFeatures } from '../../apiService';
 
 interface Props {
+  csv_pth: string;
   features: string[];
   selectedFeatures: string[];
-  onFeaturesChange: (features: string[]) => void;
+  onFeaturesChange: (features: string[], clearLabel: boolean) => void;
+  onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
   selectedLabel?: string | null;
-  setSelectedLabel: (label: string | null) => void;
 }
 
 interface CorrelationDetails {
@@ -17,27 +19,58 @@ interface CorrelationDetails {
 }
 
 const FeatureSelection: React.FC<Props> = ({
+  csv_pth,
   features,
   selectedFeatures,
   onFeaturesChange,
+  onSelectionConfigChange,
   selectedLabel,
-  setSelectedLabel,
 }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [topFeatures, setTopFeatures] = useState<string[]>([]);
-  const [correlationDetails, setCorrelationDetails] = useState<Record<string, CorrelationDetails>>({});
+  const [correlationDetails, setCorrelationDetails] = useState<Record<string, CorrelationDetails>>(
+    {},
+  );
   const [analysisInfo, setAnalysisInfo] = useState<{
     threshold: number;
     featuresAboveThreshold: number;
     usedThresholdFilter: boolean;
   } | null>(null);
 
+  const handleFeatureToggle = (feature: string) => {
+    const newSelectedFeatures = selectedFeatures.includes(feature)
+      ? selectedFeatures.filter((f) => f !== feature)
+      : [...selectedFeatures, feature];
+
+    updateFeatures(newSelectedFeatures, false);
+  };
+
+  const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
+    onFeaturesChange(newFeatures, clearLabel);
+    if (onSelectionConfigChange) {
+      onSelectionConfigChange({ selectedFeatures: newFeatures });
+    }
+  };
+
+  const getFeatureDisplayInfo = (feature: string) => {
+    if (correlationDetails[feature]) {
+      const details = correlationDetails[feature];
+      return {
+        rank: details.rank,
+        correlation: details.correlation,
+        meetsThreshold: details.meets_threshold,
+        isTop: true,
+      };
+    }
+    return { isTop: false };
+  };
+
   const handleSelectAll = () => {
-    onFeaturesChange(features);
+    onFeaturesChange(features, false);
   };
 
   const handleDeselectAll = () => {
-    onFeaturesChange([]);
+    onFeaturesChange([], true);
     setTopFeatures([]);
     setCorrelationDetails({});
     setAnalysisInfo(null);
@@ -51,73 +84,52 @@ const FeatureSelection: React.FC<Props> = ({
 
     setIsCalculating(true);
     try {
-      const result = await getTopFeatures(selectedLabel, features, 10, 0.4);
-      
+      const result = await getTopFeatures(csv_pth, selectedLabel, selectedFeatures);
+
       // Keep the selected label in the feature selection if it was previously selected
       let newSelectedFeatures = [...result.top_features];
       newSelectedFeatures.push(selectedLabel);
 
       // Update the selected features to the recommended ones
-      onFeaturesChange(newSelectedFeatures);
-      
+      onFeaturesChange(newSelectedFeatures, false);
+
       // Store analysis results for highlighting
       setTopFeatures(result.top_features);
       setCorrelationDetails(result.correlation_details);
       setAnalysisInfo({
         threshold: result.threshold_used,
         featuresAboveThreshold: result.features_above_threshold,
-        usedThresholdFilter: result.used_threshold_filter
+        usedThresholdFilter: result.used_threshold_filter,
       });
-      
-      console.log('Top features analysis completed:', result);
-      
+
       // Create success message
       const aboveThreshold = result.features_above_threshold;
       const threshold = result.threshold_used;
-      const topFeaturesList = result.top_features.slice(0, 5).map((feature, idx) => 
-        `${idx + 1}. ${feature} (r=${result.correlations[feature].toFixed(3)}${result.correlation_details[feature].meets_threshold ? ' ✓' : ''})`
-      ).join('\n');
-      
+      const topFeaturesList = result.top_features
+        .slice(0, 5)
+        .map(
+          (feature, idx) =>
+            `${idx + 1}. ${feature} (r=${result.correlations[feature].toFixed(3)}${result.correlation_details[feature].meets_threshold ? ' ✓' : ''})`,
+        )
+        .join('\n');
+
       let message = `計算完成！找到 ${result.top_features.length} 個推薦特徵\n\n`;
-      
+
       if (result.used_threshold_filter) {
         message += `符合閾值 (>${threshold}) 的特徵數: ${aboveThreshold}\n\n`;
       } else {
         message += `無特徵符合閾值 (>${threshold})，已選擇相關性最高的特徵\n\n`;
       }
-      
+
       message += `前5名:\n${topFeaturesList}\n${result.top_features.length > 5 ? '...' : ''}`;
-      
+
       alert(message);
-      
     } catch (error) {
       console.error('Error calculating top features:', error);
       // alert(`計算失敗: ${error.message}`);
     } finally {
       setIsCalculating(false);
     }
-  };
-
-  const handleFeatureToggle = (feature: string) => {
-    const isSelected = selectedFeatures.includes(feature);
-    if (isSelected) {
-      onFeaturesChange(selectedFeatures.filter(f => f !== feature));
-    } else {
-      onFeaturesChange([...selectedFeatures, feature]);
-    }
-  };
-
-  const getFeatureDisplayInfo = (feature: string) => {
-    if (correlationDetails[feature]) {
-      const details = correlationDetails[feature];
-      return {
-        rank: details.rank,
-        correlation: details.correlation,
-        meetsThreshold: details.meets_threshold,
-        isTop: true
-      };
-    }
-    return { isTop: false };
   };
 
   return (
@@ -151,31 +163,31 @@ const FeatureSelection: React.FC<Props> = ({
           </button>
         </div>
       </div>
-      
+
       {analysisInfo && (
         <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded text-sm">
           <div className="text-green-800 font-medium">
             ✨ 已選擇推薦的重要特徵 (基於與 {selectedLabel} 的相關性)
           </div>
           <div className="text-green-700 text-xs mt-1">
-            閾值: {'>'}{analysisInfo.threshold} | 
-            符合條件: {analysisInfo.featuresAboveThreshold} 個 | 
-            已選擇: {topFeatures.length} 個
+            閾值: {'>'}
+            {analysisInfo.threshold} | 符合條件: {analysisInfo.featuresAboveThreshold} 個 | 已選擇:{' '}
+            {topFeatures.length} 個
           </div>
         </div>
       )}
-      
+
       <div className="flex-1 overflow-auto custom-scroll">
         <div className="space-y-2">
           {features.map((feature) => {
             const displayInfo = getFeatureDisplayInfo(feature);
             const isSelected = selectedFeatures.includes(feature);
-            
+
             return (
-              <label 
-                key={feature} 
+              <label
+                key={feature}
                 className={`flex items-center space-x-2 cursor-pointer p-2 rounded transition-colors ${
-                  displayInfo.isTop 
+                  displayInfo.isTop
                     ? displayInfo.meetsThreshold
                       ? 'bg-green-50 border border-green-300 hover:bg-green-100'
                       : 'bg-yellow-50 border border-yellow-300 hover:bg-yellow-100'
@@ -191,11 +203,13 @@ const FeatureSelection: React.FC<Props> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
                     {displayInfo.isTop && (
-                      <span className={`px-1.5 py-0.5 rounded text-xs font-bold ${
-                        displayInfo.meetsThreshold 
-                          ? 'bg-green-400 text-green-900'
-                          : 'bg-yellow-400 text-yellow-900'
-                      }`}>
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-xs font-bold ${
+                          displayInfo.meetsThreshold
+                            ? 'bg-green-400 text-green-900'
+                            : 'bg-yellow-400 text-yellow-900'
+                        }`}
+                      >
                         #{displayInfo.rank}
                       </span>
                     )}
@@ -213,7 +227,9 @@ const FeatureSelection: React.FC<Props> = ({
                   )}
                 </div>
                 {displayInfo.isTop && (
-                  <span className={displayInfo.meetsThreshold ? 'text-green-600' : 'text-yellow-600'}>
+                  <span
+                    className={displayInfo.meetsThreshold ? 'text-green-600' : 'text-yellow-600'}
+                  >
                     ⭐
                   </span>
                 )}
@@ -222,12 +238,15 @@ const FeatureSelection: React.FC<Props> = ({
           })}
         </div>
       </div>
-      
+
       <div className="mt-2 text-sm text-gray-600 border-t pt-2">
-        <div>已選擇: {selectedFeatures.length} / {features.length}</div>
+        <div>
+          已選擇: {selectedFeatures.length} / {features.length}
+        </div>
         {topFeatures.length > 0 && (
           <div className="text-green-600">
-            推薦特徵: {selectedFeatures.filter(f => topFeatures.includes(f)).length} / {topFeatures.length}
+            推薦特徵: {selectedFeatures.filter((f) => topFeatures.includes(f)).length} /{' '}
+            {topFeatures.length}
           </div>
         )}
       </div>
