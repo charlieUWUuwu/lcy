@@ -168,6 +168,7 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
                   setSelectedLabel(null);
                 }
               }}
+              selectedLabel={selectedLabel}
             />
 
             <LabelSelection

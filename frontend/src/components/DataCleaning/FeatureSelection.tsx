@@ -3,6 +3,7 @@ import { SelectionConfig } from '../../types';
 import { getTopFeatures } from '../../apiService';
 
 interface Props {
+  csv_pth: string;
   features: string[];
   selectedFeatures: string[];
   onFeaturesChange: (features: string[], clearLabel: boolean) => void;
@@ -18,6 +19,7 @@ interface CorrelationDetails {
 }
 
 const FeatureSelection: React.FC<Props> = ({
+  csv_pth,
   features,
   selectedFeatures,
   onFeaturesChange,
@@ -43,7 +45,7 @@ const FeatureSelection: React.FC<Props> = ({
     updateFeatures(newSelectedFeatures, false);
   };
 
-    const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
+  const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
     onFeaturesChange(newFeatures, clearLabel);
     if (onSelectionConfigChange) {
       onSelectionConfigChange({ selectedFeatures: newFeatures });
@@ -82,7 +84,7 @@ const FeatureSelection: React.FC<Props> = ({
 
     setIsCalculating(true);
     try {
-      const result = await getTopFeatures(csv_pth, selectedLabel, features);
+      const result = await getTopFeatures(csv_pth, selectedLabel, selectedFeatures);
 
       // Keep the selected label in the feature selection if it was previously selected
       let newSelectedFeatures = [...result.top_features];
