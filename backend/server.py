@@ -3,7 +3,8 @@ from flask_cors import CORS
 import json
 import numpy as np
 
-from ai.feature_impact import feature_impact, get_top_features
+from ai.feature_impact import get_top_features
+from ai.data_cleaning import data_cleaning
 
 app = Flask(__name__)
 CORS(app)
@@ -53,12 +54,11 @@ def feature_analysis():
 @app.route('/api/top-features', methods=['POST'])
 def top_features():
     try:
+        csv_pth = request.json.get('csv_pth', '')
         data = request.get_json()
         selected_label = data.get('selectedLabel')
         all_features = data.get('allFeatures', [])
-        top_n = data.get('topN', 10)
-        threshold = data.get('threshold', 0.4)
-        
+
         print(f"Received request - Label: {selected_label}, Features count: {len(all_features)}, Top N: {top_n}, Threshold: {threshold}")
         
         if not selected_label:
@@ -68,7 +68,7 @@ def top_features():
             return jsonify({'error': 'No features available', 'status': 'failed'}), 400
         
         # Get top features with threshold
-        result = get_top_features(selected_label, all_features, top_n, threshold)
+        result = get_top_features(csv_pth, selected_label, all_features, top_n, threshold)
         
         print(f"Top features calculated: {result['top_features']}")
         print(f"Features above threshold ({threshold}): {result['features_above_threshold']}")
