@@ -4,3 +4,4 @@ flask-cors
 pandas
 matplotlib
 seaborn
+pyinstaller
