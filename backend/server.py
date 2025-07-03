@@ -57,21 +57,16 @@ def top_features():
         csv_pth = request.json.get('csv_pth', '')
         data = request.get_json()
         selected_label = data.get('selectedLabel')
-        all_features = data.get('allFeatures', [])
-
-        print(f"Received request - Label: {selected_label}, Features count: {len(all_features)}, Top N: {top_n}, Threshold: {threshold}")
+        selected_features = data.get('allFeatures', [])
         
         if not selected_label:
             return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
         
-        if not all_features:
+        if not selected_features:
             return jsonify({'error': 'No features available', 'status': 'failed'}), 400
         
         # Get top features with threshold
-        result = get_top_features(csv_pth, selected_label, all_features, top_n, threshold)
-        
-        print(f"Top features calculated: {result['top_features']}")
-        print(f"Features above threshold ({threshold}): {result['features_above_threshold']}")
+        result = get_top_features(csv_pth, selected_label, selected_features)
         
         # Ensure all values are JSON serializable
         response_data = {

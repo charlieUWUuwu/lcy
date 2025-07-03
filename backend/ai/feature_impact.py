@@ -9,7 +9,7 @@ from datetime import datetime
 DEFAULT_TOP_N = 10
 DEFAULT_THRESHOLD = 0.4
 
-def get_top_features(csv_pth, selected_label, all_features):
+def get_top_features(csv_pth, selected_label, selected_features):
     """
     Calculate top N features with correlations >threshold to the selected label
     If not enough features meet the threshold, use all features >threshold
@@ -17,16 +17,14 @@ def get_top_features(csv_pth, selected_label, all_features):
     
     try:
         top_n = DEFAULT_TOP_N
-        if len(all_features) < top_n:
-            top_n = len(all_features)  # Use all features if less than top_n available
+        if len(selected_features) < top_n:
+            top_n = len(selected_features)  # Use all features if less than top_n available
 
         data = pd.read_csv(csv_pth)
-        
-        # Get available features (exclude timestamp and the label itself)
-        # available_features = [col for col in all_features 
-        #                     if col in data.columns and col != selected_label and col != 'timestamp'] # get first column is better
-        
-        available_features = all_features[1:]
+
+        # Get available features (exclude the label itself)
+        available_features = [col for col in selected_features 
+                            if col in data.columns and col != selected_label] # get first column is better
 
         if not available_features:
             raise Exception("No valid features found for analysis")
