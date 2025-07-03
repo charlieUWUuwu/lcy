@@ -8,7 +8,6 @@ interface Props {
   onFeaturesChange: (features: string[], clearLabel: boolean) => void;
   onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
   selectedLabel?: string | null;
-  csv_pth: string;
 }
 
 interface CorrelationDetails {
@@ -24,7 +23,6 @@ const FeatureSelection: React.FC<Props> = ({
   onFeaturesChange,
   onSelectionConfigChange,
   selectedLabel,
-  csv_pth,
 }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [topFeatures, setTopFeatures] = useState<string[]>([]);
