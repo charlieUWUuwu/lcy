@@ -70,8 +70,6 @@ const FeatureSelection: React.FC<Props> = ({
         usedThresholdFilter: result.used_threshold_filter,
       });
 
-      console.log('Top features analysis completed:', result);
-
       // Create success message
       const aboveThreshold = result.features_above_threshold;
       const threshold = result.threshold_used;

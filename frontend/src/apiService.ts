@@ -106,7 +106,10 @@ export const cleanData = async (config: string): Promise<any> => {
   }
 };
 
-export const generateFeatureAnalysis = async (selectedFeatures: string[], selectedLabel: string): Promise<{
+export const generateFeatureAnalysis = async (
+  selectedFeatures: string[],
+  selectedLabel: string,
+): Promise<{
   all: string;
   positive: string;
   negative: string;
@@ -119,7 +122,7 @@ export const generateFeatureAnalysis = async (selectedFeatures: string[], select
     },
     body: JSON.stringify({
       selectedFeatures,
-      selectedLabel
+      selectedLabel,
     }),
   });
   
@@ -138,12 +141,15 @@ export const getTopFeatures = async (
 ): Promise<{
   top_features: string[];
   correlations: Record<string, number>;
-  correlation_details: Record<string, {
+  correlation_details: Record<
+    string,
+    {
     correlation: number;
     abs_correlation: number;
     rank: number;
     meets_threshold: boolean;
-  }>;
+    }
+  >;
   total_features_analyzed: number;
   threshold_used: number;
   features_above_threshold: number;

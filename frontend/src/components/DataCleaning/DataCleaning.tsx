@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateFeatureAnalysis } from '../../apiService';
 
+import { generateFeatureAnalysis } from '../../apiService';
 import { ProcessedFileData } from '../../types';
 import LineChart from '../LineChart';
 import FeatureSelection from './FeatureSelection';
@@ -14,11 +14,13 @@ interface DataCleaningProps {
   setSelectedFeatures: (features: string[]) => void;
   selectedLabel: string | null;
   setSelectedLabel: (label: string | null) => void;
-  setImages: React.Dispatch<React.SetStateAction<{
-    all: string;
-    positive: string;
-    negative: string;
-  } | null>>;
+  setImages: React.Dispatch<
+    React.SetStateAction<{
+      all: string;
+      positive: string;
+      negative: string;
+    } | null>
+  >;
 }
 
 const DataCleaning: React.FC<DataCleaningProps> = ({
@@ -103,8 +105,7 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
         positive: results.positive,
         negative: results.negative,
       });
-      console.log('Feature analysis completed:', results);
-      
+
       // Navigate to model training page
       navigate('/model-training');
     } catch (error) {
@@ -147,13 +148,13 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
         <div className="h-[40%] bg-gray-100 shadow-inner rounded-lg">
           <div className="h-full grid gap-4 md:grid-cols-2">
             <FeatureSelection
+              csv_pth={fileData?.name || ''}
               features={fileData?.features || []}
               selectedFeatures={selectedFeatures}
               selectedLabel={selectedLabel}
               onFeaturesChange={(features) => {
                 setSelectedFeatures(features);
               }}
-              csv_pth={fileData?.name || ''}
             />
 
             <LabelSelection
