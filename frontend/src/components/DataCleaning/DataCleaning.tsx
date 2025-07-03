@@ -23,8 +23,19 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   selectedLabel,
   setSelectedLabel,
 }) => {
-  const navigate = useNavigate();
+  const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSelectFolder = async () => {
+    const folderPath = await window.electronAPI.selectDirectory();
+    if (folderPath) {
+      setSaveFolderPath(folderPath);
+      console.log('選擇的資料夾:', folderPath);
+    } else {
+      console.log('使用者取消選擇資料夾');
+    }
+  };
 
   const handleOpenFile = async () => {
     setIsLoading(true); // 開始 loading
@@ -133,15 +144,24 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
       {/* 底部操作按鈕 */}
       <div className="h-[5%] flex justify-end">
         <button
-          className="px-6 py-2 bg-green-600 text-white rounded transition
+          className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+          onClick={handleSelectFolder}
+        >
+          Select saving folder
+        </button>
+        {saveFolderPath && (
+          <div className="text-sm text-gray-600 max-w-[400px] truncate">{saveFolderPath}</div>
+        )}
+      </div>
+      <button
+        className="px-6 py-2 bg-green-600 text-white rounded transition
              hover:bg-green-700
              disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
-          onClick={() => navigate('/model-training')}
+        onClick={() => navigate('/model-training')}
           disabled={selectedFeatures.length === 0 || selectedLabel === null}
-        >
-          Next
-        </button>
-      </div>
+      >
+        Next
+      </button>
     </div>
   );
 };
