@@ -4,7 +4,6 @@ import json
 import numpy as np
 
 from ai.feature_impact import get_top_features
-from ai.data_cleaning import data_cleaning
 
 app = Flask(__name__)
 CORS(app)
