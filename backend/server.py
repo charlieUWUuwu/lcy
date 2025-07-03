@@ -1,27 +1,103 @@
-# just a simple template for a Flask server that adds two numbers
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import json
+import numpy as np
+
+from ai.feature_impact import feature_impact, get_top_features
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/add', methods=['POST'])
-def add_numbers():
+# Custom JSON encoder to handle numpy types
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        return super(NumpyEncoder, self).default(obj)
+
+@app.route('/api/feature-analysis', methods=['POST'])
+def feature_analysis():
     try:
         data = request.get_json()
-        num1 = data.get('num1')
-        num2 = data.get('num2')
+        selected_features = data.get('selectedFeatures', [])
+        selected_label = data.get('selectedLabel')
         
-        if num1 is None or num2 is None:
-            return jsonify({'error': 'Missing num1 or num2'}), 400
+        if not selected_features:
+            return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
         
-        if not isinstance(num1, (int, float)) or not isinstance(num2, (int, float)):
-            return jsonify({'error': 'num1 and num2 must be numbers'}), 400
+        if not selected_label:
+            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
         
-        result = num1 + num2
-        return jsonify({'sum': result})
+        # Run the feature analysis with selected features and label
+        image_paths = feature_impact(selected_features, selected_label)
+        
+        # Convert absolute paths to relative URLs for frontend
+        base_url = "file:///"
+        results = {
+            'all': base_url + image_paths['all'].replace('\\', '/'),
+            'positive': base_url + image_paths.get('positive', '').replace('\\', '/'),
+            'negative': base_url + image_paths.get('negative', '').replace('\\', '/'),
+            'status': 'completed'
+        }
+        
+        return jsonify(results)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'status': 'failed'}), 500
+    
+@app.route('/api/top-features', methods=['POST'])
+def top_features():
+    try:
+        data = request.get_json()
+        selected_label = data.get('selectedLabel')
+        all_features = data.get('allFeatures', [])
+        top_n = data.get('topN', 10)
+        threshold = data.get('threshold', 0.4)
+        
+        print(f"Received request - Label: {selected_label}, Features count: {len(all_features)}, Top N: {top_n}, Threshold: {threshold}")
+        
+        if not selected_label:
+            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
+        
+        if not all_features:
+            return jsonify({'error': 'No features available', 'status': 'failed'}), 400
+        
+        # Get top features with threshold
+        result = get_top_features(selected_label, all_features, top_n, threshold)
+        
+        print(f"Top features calculated: {result['top_features']}")
+        print(f"Features above threshold ({threshold}): {result['features_above_threshold']}")
+        
+        # Ensure all values are JSON serializable
+        response_data = {
+            'top_features': result['top_features'],
+            'correlations': result['correlations'],
+            'correlation_details': result['correlation_details'],
+            'total_features_analyzed': int(result['total_features_analyzed']),
+            'threshold_used': float(result['threshold_used']),
+            'features_above_threshold': int(result['features_above_threshold']),
+            'used_threshold_filter': bool(result['used_threshold_filter']),
+            'status': 'completed'
+        }
+        
+        # Use custom encoder for JSON serialization
+        return app.response_class(
+            response=json.dumps(response_data, cls=NumpyEncoder),
+            status=200,
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        print(f"Error in top_features endpoint: {str(e)}")
+        import traceback
+        traceback.print_exc()  # Print full stack trace for debugging
+        return jsonify({'error': str(e), 'status': 'failed'}), 500
 
+    
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=3500, debug=True)
