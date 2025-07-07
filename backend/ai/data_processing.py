@@ -105,6 +105,41 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         traceback.print_exc()
         raise Exception(f"Error in data processing: {str(e)}")
 
+def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) -> pd.DataFrame:
+    """
+    Reorder columns to move label columns (selected_label + positive + negative) to the end
+    """
+    print(f"  - Reordering columns to move {label_columns} to the end...")
+    
+    # Get all columns that are not label columns
+    other_columns = [col for col in data.columns if col not in label_columns]
+    
+    # Check if all label columns exist in the data
+    missing_label_cols = [col for col in label_columns if col not in data.columns]
+    if missing_label_cols:
+        print(f"  - Warning: Missing label columns: {missing_label_cols}")
+        # Only use existing label columns
+        existing_label_cols = [col for col in label_columns if col in data.columns]
+    else:
+        existing_label_cols = label_columns
+    
+    # Create new column order: other columns first, then label columns
+    new_column_order = other_columns + existing_label_cols
+    
+    print(f"  - Original column count: {len(data.columns)}")
+    print(f"  - Other columns: {len(other_columns)}")
+    print(f"  - Label columns to move: {len(existing_label_cols)}")
+    print(f"  - New column order: {new_column_order}")
+    
+    # Reorder the dataframe
+    reordered_data = data[new_column_order].copy()
+    
+    print(f"  - Reordered data shape: {reordered_data.shape}")
+    print(f"  - Final column order: {list(reordered_data.columns)}")
+    print(f"  - Label columns are now at positions: {[reordered_data.columns.get_loc(col) for col in existing_label_cols]}")
+    
+    return reordered_data
+
 def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFrame:
     """
     Step 1: Data cleaning - only clean selected_features
@@ -267,3 +302,4 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
     print(f"    - Engineered data shape: {df_feat.shape}")
     
     return df_feat.reset_index()
+
