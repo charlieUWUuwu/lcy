@@ -34,25 +34,17 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         # Ensure save directory exists
         os.makedirs(save_folder_path, exist_ok=True)
         os.makedirs(os.path.join(save_folder_path, "images"), exist_ok=True)
-        
-        print(f"Loading data from: {csv_path}")
-        print(f"Selected features: {selected_features}")
-        print(f"Selected label: {selected_label}")
-        print(f"File name for processing: {file_name}")
                 
         # Load data
         if not os.path.exists(csv_path):
             raise Exception(f"CSV file not found: {csv_path}")
             
         data = pd.read_csv(csv_path)
-        print(f"Loaded data shape: {data.shape}")
         
         # Step 1 - Data cleaning (only selected features + label)
-        print("Step 1: Data cleaning...")
         cleaned_data = _clean_data(data, selected_features)
         
         # Step 2 - Label separation (positive/negative)
-        print("Step 2: Label separation...")
         processed_data = _separate_label_classes(cleaned_data, selected_label)
         
         # Save the position of label columns before step 3
@@ -60,37 +52,27 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         negative_col = f"{selected_label}_negative"
         label_columns = [selected_label, positive_col, negative_col]
         
-        print(f"  - Saving label column positions: {label_columns}")
-        print(f"  - Data shape before step 3: {processed_data.shape}")
-        print(f"  - Columns before step 3: {list(processed_data.columns)}")
         
         # Step 3 - Time series feature engineering
-        print("Step 3: Time series feature engineering...")
         engineered_data = _create_time_series_features(processed_data, selected_features, selected_label)
         
         # Reorder columns: put label columns (selected_label + positive + negative) at the end
-        print("  - Reordering columns to move label columns to the end...")
         engineered_data = _reorder_label_columns_to_end(engineered_data, label_columns)
         
         # Step 4 - Calculate correlations
-        print("Step 4: Calculating correlations...")
         correlations = _calculate_correlations(engineered_data, selected_label, selected_features)
         
         # Step 5 - Generate TARGET_CONFIG
-        print("Step 5: Generating TARGET_CONFIG...")
         target_config = _generate_target_config(correlations, selected_label, selected_features, engineered_data)
         
         # Step 6 - Generate correlation images (only selected_features, no time series)
-        print("Step 6: Generating correlation images...")
         image_paths = _generate_correlation_images(
             processed_data, selected_features, selected_label, save_folder_path, file_name
         )
         
         # Step 7 - Save processed data
-        print("Step 7: Saving processed data...")
         processed_data_path = _save_processed_data(engineered_data, save_folder_path, file_name)
         
-        print("Data processing completed successfully!")
         
         return {
             'target_config': target_config,
@@ -100,16 +82,12 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         }
         
     except Exception as e:
-        print(f"Error in data processing: {str(e)}")
-        import traceback
-        traceback.print_exc()
         raise Exception(f"Error in data processing: {str(e)}")
 
 def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) -> pd.DataFrame:
     """
     Reorder columns to move label columns (selected_label + positive + negative) to the end
     """
-    print(f"  - Reordering columns to move {label_columns} to the end...")
     
     # Get all columns that are not label columns
     other_columns = [col for col in data.columns if col not in label_columns]
@@ -117,7 +95,6 @@ def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) 
     # Check if all label columns exist in the data
     missing_label_cols = [col for col in label_columns if col not in data.columns]
     if missing_label_cols:
-        print(f"  - Warning: Missing label columns: {missing_label_cols}")
         # Only use existing label columns
         existing_label_cols = [col for col in label_columns if col in data.columns]
     else:
@@ -126,17 +103,10 @@ def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) 
     # Create new column order: other columns first, then label columns
     new_column_order = other_columns + existing_label_cols
     
-    print(f"  - Original column count: {len(data.columns)}")
-    print(f"  - Other columns: {len(other_columns)}")
-    print(f"  - Label columns to move: {len(existing_label_cols)}")
-    print(f"  - New column order: {new_column_order}")
     
     # Reorder the dataframe
     reordered_data = data[new_column_order].copy()
     
-    print(f"  - Reordered data shape: {reordered_data.shape}")
-    print(f"  - Final column order: {list(reordered_data.columns)}")
-    print(f"  - Label columns are now at positions: {[reordered_data.columns.get_loc(col) for col in existing_label_cols]}")
     
     return reordered_data
 
@@ -144,52 +114,40 @@ def _clean_old_images(images_folder: str, file_name: str) -> None:
     """
     Clean old correlation images for the same file to ensure only the latest 3 images remain
     """
-    print(f"  - Cleaning old images for file: {file_name}")
+    if not os.path.exists(images_folder):
+        return
     
-    try:
-        if not os.path.exists(images_folder):
-            print(f"    - Images folder does not exist: {images_folder}")
-            return
+    # Get all files in the images folder
+    all_files = os.listdir(images_folder)
+    
+    # Filter files that match the pattern for this specific file
+    patterns = [
+        f"{file_name}_all_",
+        f"{file_name}_positive_", 
+        f"{file_name}_negative_"
+    ]
+    
+    files_to_remove = []
+    for file in all_files:
+        if file.endswith('.png'):
+            for pattern in patterns:
+                if file.startswith(pattern):
+                    files_to_remove.append(file)
+                    break
+    
+    # Remove old files
+    removed_count = 0
+    for file in files_to_remove:
+        file_path = os.path.join(images_folder, file)
+        os.remove(file_path)
+        removed_count += 1
+
         
-        # Get all files in the images folder
-        all_files = os.listdir(images_folder)
-        
-        # Filter files that match the pattern for this specific file
-        patterns = [
-            f"{file_name}_all_",
-            f"{file_name}_positive_", 
-            f"{file_name}_negative_"
-        ]
-        
-        files_to_remove = []
-        for file in all_files:
-            if file.endswith('.png'):
-                for pattern in patterns:
-                    if file.startswith(pattern):
-                        files_to_remove.append(file)
-                        break
-        
-        # Remove old files
-        removed_count = 0
-        for file in files_to_remove:
-            try:
-                file_path = os.path.join(images_folder, file)
-                os.remove(file_path)
-                removed_count += 1
-                print(f"    - Removed old image: {file}")
-            except Exception as e:
-                print(f"    - Warning: Could not remove {file}: {str(e)}")
-        
-        print(f"    - Cleaned {removed_count} old image files")
-        
-    except Exception as e:
-        print(f"    - Warning: Error cleaning old images: {str(e)}")
 
 def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFrame:
     """
     Step 1: Data cleaning - only clean selected_features
     """
-    print("  - Data cleaning for selected features and label only...")
     
     # Only keep selected features + label + timestamp column
     timestamp_col = data.columns[0]  # Assume first column is timestamp
@@ -200,38 +158,29 @@ def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFram
     if missing_columns:
         raise Exception(f"Missing columns in data: {missing_columns}")
     
-    print(f"  - Keeping only: {columns_to_keep}")
     df = data[columns_to_keep].copy()
     
     # Convert timestamp to datetime and set as index
     try:
         df[timestamp_col] = pd.to_datetime(df[timestamp_col])
         df = df.set_index(timestamp_col)
-        print(f"  - Successfully converted timestamp to datetime")
     except Exception as e:
-        print(f"  - Warning: Could not convert timestamp ({str(e)}), creating artificial datetime index")
         df = df.drop(columns=[timestamp_col])
         df.index = pd.date_range(start='2023-01-01', periods=len(df), freq='10s')
     
-    print(f"  - Data after filtering: {df.shape}")
     
     # Resample to 10s intervals and take mean
-    print("  - Resampling data (10s intervals)...")
     resample_interval = '10s'
     df_resampled = df.resample(resample_interval).mean()
     
     # Interpolate missing values
-    print("  - Interpolating missing values...")
     df_interpolated = df_resampled.interpolate(method='linear')
     
     # Fill remaining NaN with 0
-    print("  - Filling remaining NaN with 0...")
     df_processed = df_interpolated.fillna(0)
     
     df_final = df_processed.reset_index()
     
-    print(f"  - Cleaned data shape: {df_final.shape}")
-    print(f"  - Final columns order: {list(df_final.columns)}")
     
     return df_final
 
@@ -241,21 +190,16 @@ def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataF
     Positive column: copy value if value > 0, else 0
     Negative column: copy value if value < 0, else 0
     """
-    print(f"  - Separating {selected_label} into positive/negative classes by sign...")
     
     df = data.copy()
     
     # Debug information
-    print(f"  - DataFrame shape: {df.shape}")
-    print(f"  - DataFrame columns: {list(df.columns)}")
     
     # Check for duplicate columns
     duplicate_cols = df.columns[df.columns.duplicated()].tolist()
     if duplicate_cols:
-        print(f"  - Warning: Found duplicate columns: {duplicate_cols}")
         # Remove duplicate columns, keep first occurrence
         df = df.loc[:, ~df.columns.duplicated()]
-        print(f"  - After removing duplicates, shape: {df.shape}")
     
     # Ensure the selected_label exists
     if selected_label not in df.columns:
@@ -270,14 +214,12 @@ def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataF
         
         label_series = df.iloc[:, label_col_index]
     except Exception as e:
-        print(f"  - Error extracting label series: {str(e)}")
         # Fallback: use direct column access
         label_series = df[selected_label]
         if isinstance(label_series, pd.DataFrame):
             label_series = label_series.iloc[:, 0]
     
     # Create masks for positive and negative values
-    print("  - Creating positive/negative masks by sign...")
     positive_mask = label_series > 0
     negative_mask = label_series < 0
     
@@ -291,10 +233,8 @@ def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataF
     positive_col = f"{selected_label}_positive"
     negative_col = f"{selected_label}_negative"
     
-    print(f"  - Adding column: {positive_col} (copy value if positive, else 0)")
     df[positive_col] = np.where(positive_mask, label_series, 0)
     
-    print(f"  - Adding column: {negative_col} (copy value if negative, else 0)")
     df[negative_col] = np.where(negative_mask, label_series, 0)
         
     return df
@@ -303,7 +243,6 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
     """
     Step 3: Time series feature engineering - add time series features to the CSV
     """
-    print("  - Creating time series features...")
     
     df_feat = data.copy()
     
@@ -317,34 +256,27 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
             df_feat.index = pd.date_range(start='2023-01-01', periods=len(df_feat), freq='10s')
     
     # Add cyclical time features
-    print("    - Adding cyclical time features...")
     df_feat['hour_sin'] = np.sin(2 * np.pi * df_feat.index.hour / 24)
     df_feat['hour_cos'] = np.cos(2 * np.pi * df_feat.index.hour / 24)
     df_feat['dayofweek_sin'] = np.sin(2 * np.pi * df_feat.index.dayofweek / 7)
     df_feat['dayofweek_cos'] = np.cos(2 * np.pi * df_feat.index.dayofweek / 7)
     
     # Add lag features for the target
-    print("    - Adding lag features...")
     lags = [360, 720, 1440, 2880]  # Adjusted for 10s intervals
     for lag in lags:
         df_feat[f'{selected_label}_lag_{lag}'] = df_feat[selected_label].shift(lag)
     
     # Add rolling window statistics for the target
-    print("    - Adding rolling window features...")
     rolling_windows = [360, 1080, 2160]  # Adjusted for 10s intervals
     for window in rolling_windows:
         df_feat[f'{selected_label}_roll_mean_{window}'] = df_feat[selected_label].rolling(window=window, min_periods=1).mean()
         df_feat[f'{selected_label}_roll_std_{window}'] = df_feat[selected_label].rolling(window=window, min_periods=1).std()
     
     # Drop rows with NaN values from lag features
-    print("    - Removing NaN values from feature engineering...")
     initial_length = len(df_feat)
     df_feat.dropna(inplace=True)
     final_length = len(df_feat)
     
-    print(f"    - Rows before NaN removal: {initial_length}")
-    print(f"    - Rows after NaN removal: {final_length}")
-    print(f"    - Engineered data shape: {df_feat.shape}")
     
     return df_feat.reset_index()
 
@@ -352,7 +284,6 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     """
     Step 4: Calculate correlations - only selected_label vs (selected_features + time_series_features)
     """
-    print("  - Calculating correlations...")
     
     # Get positive and negative label columns
     positive_col = f"{selected_label}_positive"
@@ -367,24 +298,18 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     time_series_features = [col for col in data.columns if col not in original_cols]
     all_features = selected_features + time_series_features
     
-    print(f"    - Selected features: {len(selected_features)}")
-    print(f"    - Time series features: {len(time_series_features)}")
-    print(f"    - Total features for correlation: {len(all_features)}")
     
     correlations = {}
     
     # 1. Selected label vs (selected_features + time_series_features)
-    print("    - Selected label vs all features...")
     label_corr = data[all_features].corrwith(data[selected_label])
     correlations['label_vs_all_features'] = label_corr.dropna().to_dict()
     
     # 2. Positive label vs (selected_features + time_series_features)
-    print("    - Positive label vs all features...")
     positive_corr = data[all_features].corrwith(data[positive_col])
     correlations['positive_vs_all_features'] = positive_corr.dropna().to_dict()
     
     # 3. Negative label vs (selected_features + time_series_features)
-    print("    - Negative label vs all features...")
     negative_corr = data[all_features].corrwith(data[negative_col])
     correlations['negative_vs_all_features'] = negative_corr.dropna().to_dict()
     
@@ -397,7 +322,6 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     base_features = selected_features (input features, NOT including selected_label)
     time_series_features = engineered time-based features
     """
-    print("  - Generating TARGET_CONFIG...")
     
     # Get all correlations (selected_features + time_series_features)
     all_corr = correlations['label_vs_all_features']
@@ -412,14 +336,9 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     time_series_weights = [float(abs(all_corr[feature])) for feature in time_series_features]
     
     # Debug information
-    print(f"    - Selected features (input): {selected_features}")
-    print(f"    - Selected label (target): {selected_label}")
-    print(f"    - Base features (input features with correlations): {base_features}")
-    print(f"    - Time series features (engineered): {time_series_features[:5]}{'...' if len(time_series_features) > 5 else ''}")
     
     # Verify selected_label is not in base_features
     if selected_label in base_features:
-        print(f"    - WARNING: selected_label '{selected_label}' found in base_features! Removing...")
         base_features = [f for f in base_features if f != selected_label]
         base_weights = [base_weights[i] for i, f in enumerate(base_features) if f != selected_label]
     
@@ -432,9 +351,6 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
         }
     }
     
-    print(f"    - Final base features count: {len(base_features)}")
-    print(f"    - Final time series features count: {len(time_series_features)}")
-    print(f"    - Base features: {base_features}")
     
     # Verify the structure
     config = target_config[selected_label]
@@ -447,7 +363,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     """
     Step 6: Generate correlation images - only for selected_features (no time series)
     """
-    print("  - Generating correlation images (selected_features only)...")
     
     images_folder = os.path.join(save_folder_path, "images")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -462,7 +377,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     negative_col = f"{selected_label}_negative"
     
     # 1. Selected label vs selected features - ALL (Updated naming)
-    print("    - Creating selected features correlation image...")
     fig, ax = plt.subplots(figsize=(12, 8))
     
     label_corr = data[selected_features].corrwith(data[selected_label])
@@ -494,7 +408,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     image_paths['all'] = selected_path  # Changed key from 'selected_features' to 'all'
     
     # 2. Positive label vs selected features - POSITIVE (Updated naming)
-    print("    - Creating positive label correlation image...")
     fig, ax = plt.subplots(figsize=(12, 8))
     
     positive_corr = data[selected_features].corrwith(data[positive_col])
@@ -527,7 +440,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     image_paths['positive'] = positive_path  # Changed key from 'positive_label' to 'positive'
     
     # 3. Negative label vs selected features - NEGATIVE (Updated naming)
-    print("    - Creating negative label correlation image...")
     fig, ax = plt.subplots(figsize=(12, 8))
     
     negative_corr = data[selected_features].corrwith(data[negative_col])
@@ -559,8 +471,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     plt.close(fig)
     image_paths['negative'] = negative_path  # Changed key from 'negative_label' to 'negative'
     
-    print(f"    - Saved 3 correlation images to: {images_folder}")
-    print(f"    - Image paths: {image_paths}")
     
     return image_paths
 
@@ -572,7 +482,6 @@ def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: s
         save_folder_path: Path to save the file
         file_name: Original file name without extension
     """
-    print("  - Saving processed data...")
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Use the original file name in the processed file name
@@ -582,8 +491,5 @@ def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: s
     # Save the data with all engineered features
     data.to_csv(processed_path, index=False)
     
-    print(f"    - Processed data saved to: {processed_path}")
-    print(f"    - Final data shape: {data.shape}")
-    print(f"    - Final columns: {list(data.columns)}")
     
     return processed_path

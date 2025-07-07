@@ -59,9 +59,6 @@ def top_features():
         )
         
     except Exception as e:
-        print(f"Error in top_features endpoint: {str(e)}")
-        import traceback
-        traceback.print_exc()  # Print full stack trace for debugging
         return jsonify({'error': str(e), 'status': 'failed'}), 500
 
 @app.route('/api/data-processing', methods=['POST'])
@@ -74,12 +71,6 @@ def data_processing_endpoint():
         csv_path = data.get('csvPath', '') # Get CSV path from frontend
         file_name = data.get('fileName', 'data') # Get fileName from frontend
         
-        print(f"Received data processing request:")
-        print(f"- Selected features: {len(selected_features)} features")
-        print(f"- Selected label: {selected_label}")
-        print(f"- Save folder: {save_folder_path}")
-        print(f"- CSV path: {csv_path}")
-        print(f"- File name: {file_name}")
         
         if not selected_features:
             return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
@@ -96,10 +87,6 @@ def data_processing_endpoint():
         # Run the complete data processing pipeline with fileName
         result = data_processing(selected_features, selected_label, save_folder_path, csv_path, file_name)
         
-        print(f"Data processing completed successfully")
-        print(f"- TARGET_CONFIG generated for: {list(result['target_config'].keys())}")
-        print(f"- Images saved: {len(result['correlation_images'])} images")
-        print(f"- Processed data saved to: {result['processed_data_path']}")
         
         # Ensure all values are JSON serializable
         response_data = {
@@ -117,9 +104,6 @@ def data_processing_endpoint():
         )
         
     except Exception as e:
-        print(f"Error in data_processing endpoint: {str(e)}")
-        import traceback
-        traceback.print_exc()  # Print full stack trace for debugging
         return jsonify({'error': str(e), 'status': 'failed'}), 500
     
 if __name__ == '__main__':
