@@ -129,7 +129,10 @@ const ModelTraining: React.FC = () => {
       '2025-01-01 06:00',
       '2025-01-01 07:00',
     ],
-    values: [20, 21, 19, 22, 23, 24, 23.5, 25, 1.0, 1.1, 1.05, 1.2, 1.15, 1.1, 1.12, 1.3], // truth, predict 對應的各自 8 筆值
+    featureValues: [
+      [20, 21, 19, 22, 23, 24, 23.5, 25],
+      [1.0, 1.1, 1.05, 1.2, 1.15, 1.1, 1.12, 1.3],
+    ], // truth, predict 對應的各自 8 筆值
   };
   const selectedFeatures = ['truth', 'predict'];
 

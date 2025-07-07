@@ -78,20 +78,13 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
 
       const { headers, sampledTimestamps, sampledFeatures } =
         await window.electronAPI.readCSV(filePath);
-
       if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
-
-      // 將所有 feature 資料攤平成 values[]
-      const values: number[] = [];
-      sampledFeatures.forEach((featureArray) => {
-        values.push(...featureArray);
-      });
 
       setFileData({
         name: filePath,
         features: headers,
         timestamps: sampledTimestamps,
-        values,
+        featureValues: sampledFeatures,
       });
 
       console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);

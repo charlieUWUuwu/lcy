@@ -21,7 +21,7 @@ type Props = {
 };
 
 const getChartData = (fileData: ProcessedFileData, selectedFeatures: string[]) => {
-  const { timestamps, features, values } = fileData;
+  const { timestamps, features, featureValues } = fileData;
   const featureIndexMap = new Map(features.map((f, idx) => [f, idx]));
   const total = selectedFeatures.length;
 
@@ -30,10 +30,8 @@ const getChartData = (fileData: ProcessedFileData, selectedFeatures: string[]) =
       const featureIndex = featureIndexMap.get(feature);
       if (featureIndex === undefined) return null;
 
-      const data = timestamps.map((_, i) => {
-        const valueIndex = featureIndex * timestamps.length + i;
-        return values[valueIndex];
-      });
+      const data = featureValues[featureIndex];
+      if (!data || data.length !== timestamps.length) return null;
 
       const hue = (360 / total) * i;
       const color = `hsl(${hue}, 70%, 50%)`;
