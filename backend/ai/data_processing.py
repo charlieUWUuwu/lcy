@@ -344,3 +344,55 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     correlations['negative_vs_all_features'] = negative_corr.dropna().to_dict()
     
     return correlations
+
+def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_label: str, 
+                          selected_features: List[str], data: pd.DataFrame) -> Dict[str, Any]:
+    """
+    Step 5: Generate TARGET_CONFIG - only selected_label vs (selected_features + time_series_features)
+    base_features = selected_features (input features, NOT including selected_label)
+    time_series_features = engineered time-based features
+    """
+    print("  - Generating TARGET_CONFIG...")
+    
+    # Get all correlations (selected_features + time_series_features)
+    all_corr = correlations['label_vs_all_features']
+    
+    # Base features are ONLY the selected_features (input features, excluding selected_label)
+    base_features = [feature for feature in selected_features if feature in all_corr]
+    base_weights = [float(abs(all_corr[feature])) for feature in base_features]
+    
+    # Time series features are all engineered features (NOT including selected_features or selected_label)
+    time_series_features = [feature for feature in all_corr.keys() 
+                           if feature not in selected_features and feature != selected_label]
+    time_series_weights = [float(abs(all_corr[feature])) for feature in time_series_features]
+    
+    # Debug information
+    print(f"    - Selected features (input): {selected_features}")
+    print(f"    - Selected label (target): {selected_label}")
+    print(f"    - Base features (input features with correlations): {base_features}")
+    print(f"    - Time series features (engineered): {time_series_features[:5]}{'...' if len(time_series_features) > 5 else ''}")
+    
+    # Verify selected_label is not in base_features
+    if selected_label in base_features:
+        print(f"    - WARNING: selected_label '{selected_label}' found in base_features! Removing...")
+        base_features = [f for f in base_features if f != selected_label]
+        base_weights = [base_weights[i] for i, f in enumerate(base_features) if f != selected_label]
+    
+    target_config = {
+        selected_label: {
+            'base_features': base_features,
+            'base_feature_weights': base_weights,
+            'time_series_features': time_series_features,
+            'time_series_weights': time_series_weights
+        }
+    }
+    
+    print(f"    - Final base features count: {len(base_features)}")
+    print(f"    - Final time series features count: {len(time_series_features)}")
+    print(f"    - Base features: {base_features}")
+    
+    # Verify the structure
+    config = target_config[selected_label]
+    assert selected_label not in config['base_features'], f"Error: selected_label '{selected_label}' should not be in base_features!"
+    
+    return target_config
