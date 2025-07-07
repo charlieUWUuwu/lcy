@@ -49,7 +49,7 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         
         # Step 1 - Data cleaning (only selected features + label)
         print("Step 1: Data cleaning...")
-        cleaned_data = _clean_data(data, selected_features, selected_label)
+        cleaned_data = _clean_data(data, selected_features)
         
         # Step 2 - Label separation (positive/negative)
         print("Step 2: Label separation...")
@@ -104,3 +104,53 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         import traceback
         traceback.print_exc()
         raise Exception(f"Error in data processing: {str(e)}")
+
+def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFrame:
+    """
+    Step 1: Data cleaning - only clean selected_features
+    """
+    print("  - Data cleaning for selected features and label only...")
+    
+    # Only keep selected features + label + timestamp column
+    timestamp_col = data.columns[0]  # Assume first column is timestamp
+    columns_to_keep = [timestamp_col] + selected_features
+    
+    # Check if all columns exist
+    missing_columns = [col for col in columns_to_keep if col not in data.columns]
+    if missing_columns:
+        raise Exception(f"Missing columns in data: {missing_columns}")
+    
+    print(f"  - Keeping only: {columns_to_keep}")
+    df = data[columns_to_keep].copy()
+    
+    # Convert timestamp to datetime and set as index
+    try:
+        df[timestamp_col] = pd.to_datetime(df[timestamp_col])
+        df = df.set_index(timestamp_col)
+        print(f"  - Successfully converted timestamp to datetime")
+    except Exception as e:
+        print(f"  - Warning: Could not convert timestamp ({str(e)}), creating artificial datetime index")
+        df = df.drop(columns=[timestamp_col])
+        df.index = pd.date_range(start='2023-01-01', periods=len(df), freq='10s')
+    
+    print(f"  - Data after filtering: {df.shape}")
+    
+    # Resample to 10s intervals and take mean
+    print("  - Resampling data (10s intervals)...")
+    resample_interval = '10s'
+    df_resampled = df.resample(resample_interval).mean()
+    
+    # Interpolate missing values
+    print("  - Interpolating missing values...")
+    df_interpolated = df_resampled.interpolate(method='linear')
+    
+    # Fill remaining NaN with 0
+    print("  - Filling remaining NaN with 0...")
+    df_processed = df_interpolated.fillna(0)
+    
+    df_final = df_processed.reset_index()
+    
+    print(f"  - Cleaned data shape: {df_final.shape}")
+    print(f"  - Final columns order: {list(df_final.columns)}")
+    
+    return df_final
