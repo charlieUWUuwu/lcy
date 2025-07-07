@@ -303,3 +303,44 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
     
     return df_feat.reset_index()
 
+def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_features: List[str]) -> Dict[str, Dict[str, float]]:
+    """
+    Step 4: Calculate correlations - only selected_label vs (selected_features + time_series_features)
+    """
+    print("  - Calculating correlations...")
+    
+    # Get positive and negative label columns
+    positive_col = f"{selected_label}_positive"
+    negative_col = f"{selected_label}_negative"
+    
+    # Get time series features (all columns that are not original features or labels)
+    original_cols = set(selected_features + [selected_label, positive_col, negative_col])
+    timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
+    if timestamp_col:
+        original_cols.add(timestamp_col)
+    
+    time_series_features = [col for col in data.columns if col not in original_cols]
+    all_features = selected_features + time_series_features
+    
+    print(f"    - Selected features: {len(selected_features)}")
+    print(f"    - Time series features: {len(time_series_features)}")
+    print(f"    - Total features for correlation: {len(all_features)}")
+    
+    correlations = {}
+    
+    # 1. Selected label vs (selected_features + time_series_features)
+    print("    - Selected label vs all features...")
+    label_corr = data[all_features].corrwith(data[selected_label])
+    correlations['label_vs_all_features'] = label_corr.dropna().to_dict()
+    
+    # 2. Positive label vs (selected_features + time_series_features)
+    print("    - Positive label vs all features...")
+    positive_corr = data[all_features].corrwith(data[positive_col])
+    correlations['positive_vs_all_features'] = positive_corr.dropna().to_dict()
+    
+    # 3. Negative label vs (selected_features + time_series_features)
+    print("    - Negative label vs all features...")
+    negative_corr = data[all_features].corrwith(data[negative_col])
+    correlations['negative_vs_all_features'] = negative_corr.dropna().to_dict()
+    
+    return correlations
