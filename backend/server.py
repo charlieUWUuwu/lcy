@@ -4,6 +4,7 @@ import json
 import numpy as np
 
 from ai.feature_impact import get_top_features
+from ai.data_processing import data_processing
 
 app = Flask(__name__)
 CORS(app)
@@ -63,6 +64,63 @@ def top_features():
         traceback.print_exc()  # Print full stack trace for debugging
         return jsonify({'error': str(e), 'status': 'failed'}), 500
 
+@app.route('/api/data-processing', methods=['POST'])
+def data_processing_endpoint():
+    try:
+        data = request.get_json()
+        selected_features = data.get('selectedFeatures', [])
+        selected_label = data.get('selectedLabel')
+        save_folder_path = data.get('saveFolderPath', '')
+        csv_path = data.get('csvPath', '') # Get CSV path from frontend
+        file_name = data.get('fileName', 'data') # Get fileName from frontend
+        
+        print(f"Received data processing request:")
+        print(f"- Selected features: {len(selected_features)} features")
+        print(f"- Selected label: {selected_label}")
+        print(f"- Save folder: {save_folder_path}")
+        print(f"- CSV path: {csv_path}")
+        print(f"- File name: {file_name}")
+        
+        if not selected_features:
+            return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
+        
+        if not selected_label:
+            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
+            
+        if not save_folder_path:
+            return jsonify({'error': 'No save folder selected', 'status': 'failed'}), 400
+            
+        if not csv_path:
+            return jsonify({'error': 'No CSV path provided', 'status': 'failed'}), 400
+        
+        # Run the complete data processing pipeline with fileName
+        result = data_processing(selected_features, selected_label, save_folder_path, csv_path, file_name)
+        
+        print(f"Data processing completed successfully")
+        print(f"- TARGET_CONFIG generated for: {list(result['target_config'].keys())}")
+        print(f"- Images saved: {len(result['correlation_images'])} images")
+        print(f"- Processed data saved to: {result['processed_data_path']}")
+        
+        # Ensure all values are JSON serializable
+        response_data = {
+            'target_config': result['target_config'],
+            'correlation_images': result['correlation_images'],
+            'processed_data_path': result['processed_data_path'],
+            'status': 'completed'
+        }
+        
+        # Use custom encoder for JSON serialization
+        return app.response_class(
+            response=json.dumps(response_data, cls=NumpyEncoder),
+            status=200,
+            mimetype='application/json'
+        )
+        
+    except Exception as e:
+        print(f"Error in data_processing endpoint: {str(e)}")
+        import traceback
+        traceback.print_exc()  # Print full stack trace for debugging
+        return jsonify({'error': str(e), 'status': 'failed'}), 500
     
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=3500, debug=True)
