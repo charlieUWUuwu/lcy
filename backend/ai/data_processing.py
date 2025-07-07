@@ -564,3 +564,26 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     
     return image_paths
 
+def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: str = 'data') -> str:
+    """
+    Step 7: Save final CSV with all features (original + time series + label classes)
+    Args:
+        data: DataFrame to save
+        save_folder_path: Path to save the file
+        file_name: Original file name without extension
+    """
+    print("  - Saving processed data...")
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Use the original file name in the processed file name
+    processed_filename = f"{file_name}_processed_{timestamp}.csv"
+    processed_path = os.path.join(save_folder_path, processed_filename)
+    
+    # Save the data with all engineered features
+    data.to_csv(processed_path, index=False)
+    
+    print(f"    - Processed data saved to: {processed_path}")
+    print(f"    - Final data shape: {data.shape}")
+    print(f"    - Final columns: {list(data.columns)}")
+    
+    return processed_path
