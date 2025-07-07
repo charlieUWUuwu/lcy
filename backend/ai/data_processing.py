@@ -218,3 +218,52 @@ def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataF
     df[negative_col] = np.where(negative_mask, label_series, 0)
         
     return df
+
+def _create_time_series_features(data: pd.DataFrame, selected_features: List[str], selected_label: str) -> pd.DataFrame:
+    """
+    Step 3: Time series feature engineering - add time series features to the CSV
+    """
+    print("  - Creating time series features...")
+    
+    df_feat = data.copy()
+    
+    # Ensure datetime index for time-based features
+    if not isinstance(df_feat.index, pd.DatetimeIndex):
+        timestamp_col = df_feat.columns[0]  # First column should be timestamp
+        try:
+            df_feat[timestamp_col] = pd.to_datetime(df_feat[timestamp_col])
+            df_feat = df_feat.set_index(timestamp_col)
+        except:
+            df_feat.index = pd.date_range(start='2023-01-01', periods=len(df_feat), freq='10s')
+    
+    # Add cyclical time features
+    print("    - Adding cyclical time features...")
+    df_feat['hour_sin'] = np.sin(2 * np.pi * df_feat.index.hour / 24)
+    df_feat['hour_cos'] = np.cos(2 * np.pi * df_feat.index.hour / 24)
+    df_feat['dayofweek_sin'] = np.sin(2 * np.pi * df_feat.index.dayofweek / 7)
+    df_feat['dayofweek_cos'] = np.cos(2 * np.pi * df_feat.index.dayofweek / 7)
+    
+    # Add lag features for the target
+    print("    - Adding lag features...")
+    lags = [360, 720, 1440, 2880]  # Adjusted for 10s intervals
+    for lag in lags:
+        df_feat[f'{selected_label}_lag_{lag}'] = df_feat[selected_label].shift(lag)
+    
+    # Add rolling window statistics for the target
+    print("    - Adding rolling window features...")
+    rolling_windows = [360, 1080, 2160]  # Adjusted for 10s intervals
+    for window in rolling_windows:
+        df_feat[f'{selected_label}_roll_mean_{window}'] = df_feat[selected_label].rolling(window=window, min_periods=1).mean()
+        df_feat[f'{selected_label}_roll_std_{window}'] = df_feat[selected_label].rolling(window=window, min_periods=1).std()
+    
+    # Drop rows with NaN values from lag features
+    print("    - Removing NaN values from feature engineering...")
+    initial_length = len(df_feat)
+    df_feat.dropna(inplace=True)
+    final_length = len(df_feat)
+    
+    print(f"    - Rows before NaN removal: {initial_length}")
+    print(f"    - Rows after NaN removal: {final_length}")
+    print(f"    - Engineered data shape: {df_feat.shape}")
+    
+    return df_feat.reset_index()
