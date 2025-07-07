@@ -140,6 +140,51 @@ def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) 
     
     return reordered_data
 
+def _clean_old_images(images_folder: str, file_name: str) -> None:
+    """
+    Clean old correlation images for the same file to ensure only the latest 3 images remain
+    """
+    print(f"  - Cleaning old images for file: {file_name}")
+    
+    try:
+        if not os.path.exists(images_folder):
+            print(f"    - Images folder does not exist: {images_folder}")
+            return
+        
+        # Get all files in the images folder
+        all_files = os.listdir(images_folder)
+        
+        # Filter files that match the pattern for this specific file
+        patterns = [
+            f"{file_name}_all_",
+            f"{file_name}_positive_", 
+            f"{file_name}_negative_"
+        ]
+        
+        files_to_remove = []
+        for file in all_files:
+            if file.endswith('.png'):
+                for pattern in patterns:
+                    if file.startswith(pattern):
+                        files_to_remove.append(file)
+                        break
+        
+        # Remove old files
+        removed_count = 0
+        for file in files_to_remove:
+            try:
+                file_path = os.path.join(images_folder, file)
+                os.remove(file_path)
+                removed_count += 1
+                print(f"    - Removed old image: {file}")
+            except Exception as e:
+                print(f"    - Warning: Could not remove {file}: {str(e)}")
+        
+        print(f"    - Cleaned {removed_count} old image files")
+        
+    except Exception as e:
+        print(f"    - Warning: Error cleaning old images: {str(e)}")
+
 def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFrame:
     """
     Step 1: Data cleaning - only clean selected_features
@@ -396,3 +441,126 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     assert selected_label not in config['base_features'], f"Error: selected_label '{selected_label}' should not be in base_features!"
     
     return target_config
+
+def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str], 
+                                selected_label: str, save_folder_path: str, file_name: str = 'data') -> Dict[str, str]:
+    """
+    Step 6: Generate correlation images - only for selected_features (no time series)
+    """
+    print("  - Generating correlation images (selected_features only)...")
+    
+    images_folder = os.path.join(save_folder_path, "images")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Clean old images before generating new ones
+    _clean_old_images(images_folder, file_name)
+    
+    image_paths = {}
+    
+    # Get positive and negative label columns
+    positive_col = f"{selected_label}_positive"
+    negative_col = f"{selected_label}_negative"
+    
+    # 1. Selected label vs selected features - ALL (Updated naming)
+    print("    - Creating selected features correlation image...")
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    label_corr = data[selected_features].corrwith(data[selected_label])
+    label_corr = label_corr.dropna()
+    
+    if not label_corr.empty:
+        colors = ['green' if x > 0 else 'red' for x in label_corr.values]
+        bars = ax.bar(range(len(label_corr)), label_corr.values, color=colors, alpha=0.7)
+        
+        for i, (feature, corr) in enumerate(label_corr.items()):
+            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
+                   ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
+        
+        ax.set_xlabel('Selected Features')
+        ax.set_ylabel('Correlation Coefficient')
+        ax.set_title(f'Correlations: {selected_label} vs Selected Features', fontsize=14)
+        ax.set_xticks(range(len(label_corr)))
+        ax.set_xticklabels(label_corr.index, rotation=45, ha='right')
+        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        ax.grid(True, alpha=0.3)
+    else:
+        ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
+    
+    plt.tight_layout()
+    # Updated naming format: {file_name}_all_{timestamp}.png
+    selected_path = os.path.join(images_folder, f"{file_name}_all_{timestamp}.png")
+    plt.savefig(selected_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    image_paths['all'] = selected_path  # Changed key from 'selected_features' to 'all'
+    
+    # 2. Positive label vs selected features - POSITIVE (Updated naming)
+    print("    - Creating positive label correlation image...")
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    positive_corr = data[selected_features].corrwith(data[positive_col])
+    positive_corr = positive_corr.dropna()
+    
+    if not positive_corr.empty:
+        colors = ['lightgreen' if x > 0 else 'lightcoral' for x in positive_corr.values]
+        bars = ax.bar(range(len(positive_corr)), positive_corr.values, color=colors, alpha=0.7)
+        
+        for i, (feature, corr) in enumerate(positive_corr.items()):
+            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
+                   ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
+        
+        ax.set_xlabel('Selected Features')
+        ax.set_ylabel('Correlation Coefficient')
+        ax.set_title(f'Correlations: {selected_label} Positive Class vs Selected Features', fontsize=14)
+        ax.set_xticks(range(len(positive_corr)))
+        ax.set_xticklabels(positive_corr.index, rotation=45, ha='right')
+        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        ax.grid(True, alpha=0.3)
+    else:
+        ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
+        ax.set_title(f'Correlations: {selected_label} Positive Class vs Selected Features', fontsize=14)
+    
+    plt.tight_layout()
+    # Updated naming format: {file_name}_positive_{timestamp}.png
+    positive_path = os.path.join(images_folder, f"{file_name}_positive_{timestamp}.png")
+    plt.savefig(positive_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    image_paths['positive'] = positive_path  # Changed key from 'positive_label' to 'positive'
+    
+    # 3. Negative label vs selected features - NEGATIVE (Updated naming)
+    print("    - Creating negative label correlation image...")
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    negative_corr = data[selected_features].corrwith(data[negative_col])
+    negative_corr = negative_corr.dropna()
+    
+    if not negative_corr.empty:
+        colors = ['lightgreen' if x > 0 else 'lightcoral' for x in negative_corr.values]
+        bars = ax.bar(range(len(negative_corr)), negative_corr.values, color=colors, alpha=0.7)
+        
+        for i, (feature, corr) in enumerate(negative_corr.items()):
+            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
+                   ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
+        
+        ax.set_xlabel('Selected Features')
+        ax.set_ylabel('Correlation Coefficient')
+        ax.set_title(f'Correlations: {selected_label} Negative Class vs Selected Features', fontsize=14)
+        ax.set_xticks(range(len(negative_corr)))
+        ax.set_xticklabels(negative_corr.index, rotation=45, ha='right')
+        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        ax.grid(True, alpha=0.3)
+    else:
+        ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
+        ax.set_title(f'Correlations: {selected_label} Negative Class vs Selected Features', fontsize=14)
+    
+    plt.tight_layout()
+    # Updated naming format: {file_name}_negative_{timestamp}.png
+    negative_path = os.path.join(images_folder, f"{file_name}_negative_{timestamp}.png")
+    plt.savefig(negative_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    image_paths['negative'] = negative_path  # Changed key from 'negative_label' to 'negative'
+    
+    print(f"    - Saved 3 correlation images to: {images_folder}")
+    print(f"    - Image paths: {image_paths}")
+    
+    return image_paths
+
