@@ -90,7 +90,6 @@ def data_processing_endpoint():
         
         # Ensure all values are JSON serializable
         response_data = {
-            'target_config': result['target_config'],
             'correlation_images': result['correlation_images'],
             'processed_data_path': result['processed_data_path'],
             'status': 'completed'
