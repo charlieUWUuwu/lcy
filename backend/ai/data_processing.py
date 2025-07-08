@@ -41,6 +41,8 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
             
         data = pd.read_csv(csv_path)
         
+        _clean_old_processed_files(save_folder_path)
+        
         # Step 1 - Data cleaning (only selected features + label)
         cleaned_data = _clean_data(data, selected_features)
         
@@ -110,9 +112,33 @@ def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) 
     
     return reordered_data
 
-def _clean_old_images(images_folder: str, file_name: str) -> None:
+def _clean_old_processed_files(save_folder_path: str) -> None:
     """
-    Clean old correlation images for the same file to ensure only the latest 3 images remain
+    Clean ALL old processed CSV files to ensure only the latest file remains
+    """
+    if not os.path.exists(save_folder_path):
+        return
+    
+    # Get all files in the save folder (not including subdirectories)
+    all_files = [f for f in os.listdir(save_folder_path) 
+                if os.path.isfile(os.path.join(save_folder_path, f))]
+    
+    # Filter ALL processed CSV files (any file with "_processed_" pattern)
+    files_to_remove = []
+    for file in all_files:
+        if file.endswith('.csv') and '_processed_' in file:
+            files_to_remove.append(file)
+    
+    # Remove old files
+    removed_count = 0
+    for file in files_to_remove:
+        file_path = os.path.join(save_folder_path, file)
+        os.remove(file_path)
+        removed_count += 1
+
+def _clean_old_images(images_folder: str) -> None:
+    """
+    Clean ALL old correlation images to ensure only the latest 3 images remain
     """
     if not os.path.exists(images_folder):
         return
@@ -120,28 +146,18 @@ def _clean_old_images(images_folder: str, file_name: str) -> None:
     # Get all files in the images folder
     all_files = os.listdir(images_folder)
     
-    # Filter files that match the pattern for this specific file
-    patterns = [
-        f"{file_name}_all_",
-        f"{file_name}_positive_", 
-        f"{file_name}_negative_"
-    ]
-    
+    # Filter ALL image files (any PNG files)
     files_to_remove = []
     for file in all_files:
         if file.endswith('.png'):
-            for pattern in patterns:
-                if file.startswith(pattern):
-                    files_to_remove.append(file)
-                    break
+            files_to_remove.append(file)
     
-    # Remove old files
+    # Remove all image files
     removed_count = 0
     for file in files_to_remove:
         file_path = os.path.join(images_folder, file)
         os.remove(file_path)
         removed_count += 1
-
         
 
 def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFrame:
@@ -368,7 +384,7 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Clean old images before generating new ones
-    _clean_old_images(images_folder, file_name)
+    _clean_old_images(images_folder)
     
     image_paths = {}
     
