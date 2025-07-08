@@ -15,7 +15,8 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
     2. Label separation (positive/negative)
     3. Time series feature engineering
     4. Correlation calculation
-    5. Insert weights into the dataframe
+    5.1 Generate TARGET_CONFIG
+    5.2 Save feature weights to CSV
     6. Correlation images generation
     7. Save processed data
     
@@ -27,7 +28,7 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         file_name: File name without extension for processed file naming
     
     Returns:
-        image paths, and processed data path
+        target_config, image paths, processed data path, and weights data path
     """
     
     try:
@@ -63,19 +64,23 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         # Step 4 - Calculate correlations
         correlations = _calculate_correlations(engineered_data, selected_label, selected_features)
         
-        # Step 5 - Insert weights into the dataframe
-        engineered_data_with_weights = _insert_feature_weights_into_dataframe(engineered_data, correlations, selected_label)        
+        # Step 5 - Generate TARGET_CONFIG, Save weights as separate CSV file
+        target_config = _generate_target_config(correlations, selected_label, selected_features, engineered_data)
+        weights_data_path = _save_feature_weights_csv(engineered_data, correlations, save_folder_path, file_name)
+
         # Step 6 - Generate correlation images (only selected_features, no time series)
         image_paths = _generate_correlation_images(
             processed_data, selected_features, selected_label, save_folder_path, file_name
         )
         
         # Step 7 - Save processed data
-        processed_data_path = _save_processed_data(engineered_data_with_weights, save_folder_path, file_name)
+        processed_data_path = _save_processed_data(engineered_data, save_folder_path, file_name)
         
         return {
+            'target_config': target_config,
             'correlation_images': image_paths,
             'processed_data_path': processed_data_path,
+            'weights_data_path': weights_data_path,
             'status': 'completed'
         }
         
@@ -320,11 +325,48 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     
     return correlations
 
-def _insert_feature_weights_into_dataframe(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], selected_label: str) -> pd.DataFrame:
+def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_label: str, 
+                           selected_features: List[str], data: pd.DataFrame) -> Dict[str, Any]:
     """
-    Insert feature weights directly into the dataframe as the second row
+    Step 5: Generate target config dictionary with feature weights
     """
-    # Create a copy to avoid modifying the original
+    # Get all correlations
+    all_corr = correlations['label_vs_all_features']
+    
+    # Filter base features to include only those in all_corr and exclude selected_label
+    base_features = [feature for feature in selected_features if feature in all_corr and feature != selected_label]
+    base_weights = [float(abs(all_corr[feature])) for feature in base_features]
+    
+    # Get time series features (all columns that are not original features or labels)
+    positive_col = f"{selected_label}_positive"
+    negative_col = f"{selected_label}_negative"
+    original_cols = set(selected_features + [selected_label, positive_col, negative_col])
+    timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
+    if timestamp_col:
+        original_cols.add(timestamp_col)
+    
+    # Filter time series features to include only those in all_corr
+    time_series_features = [col for col in data.columns if col not in original_cols and col in all_corr]
+    time_series_weights = [float(abs(all_corr[feat])) for feat in time_series_features]
+    
+    # Create target_config
+    target_config = {
+        selected_label: {
+            'base_features': base_features,
+            'base_feature_weights': base_weights,
+            'time_series_features': time_series_features,
+            'time_series_weights': time_series_weights
+        }
+    }
+    
+    return target_config
+
+def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], 
+                             save_folder_path: str, file_name: str = 'data') -> str:
+    """
+    Save feature weights to a separate CSV file
+    """
+    # Create a copy of the DataFrame
     df = data.copy()
     
     # Get all correlations
@@ -342,17 +384,20 @@ def _insert_feature_weights_into_dataframe(data: pd.DataFrame, correlations: Dic
             # For columns without correlation (like timestamp or label columns), use 0.0
             weights_row[column] = 0.0
     
-    # Insert the weights row at the top (index 0)
-    # First, shift all existing indices down by 1
-    df.index = df.index + 1
+    # Create a new DataFrame with the weights as the first row
+    weights_df = pd.DataFrame([weights_row])
     
-    # Then insert the weights row at index 0
-    weights_df = pd.DataFrame([weights_row], index=[0])
+    # Create a copy of the original data
+    data_with_weights = pd.concat([weights_df, df], ignore_index=True)
     
-    # Concatenate the weights row with the original data
-    result_df = pd.concat([weights_df, df], sort=False).reset_index(drop=True)
+    # Create a filename for the weights CSV
+    weights_filename = f"{file_name}_weights.csv"
+    weights_path = os.path.join(save_folder_path, weights_filename)
     
-    return result_df
+    # Save the weights CSV
+    data_with_weights.to_csv(weights_path, index=False)
+    
+    return weights_path
 
 def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str], 
                                 selected_label: str, save_folder_path: str, file_name: str = 'data') -> Dict[str, str]:
