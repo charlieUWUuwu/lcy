@@ -54,7 +54,6 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         negative_col = f"{selected_label}_negative"
         label_columns = [selected_label, positive_col, negative_col]
         
-        
         # Step 3 - Time series feature engineering
         engineered_data = _create_time_series_features(processed_data, selected_features, selected_label)
         
@@ -74,7 +73,6 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         
         # Step 7 - Save processed data
         processed_data_path = _save_processed_data(engineered_data, save_folder_path, file_name)
-        
         
         return {
             'target_config': target_config,
@@ -104,7 +102,6 @@ def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) 
     
     # Create new column order: other columns first, then label columns
     new_column_order = other_columns + existing_label_cols
-    
     
     # Reorder the dataframe
     reordered_data = data[new_column_order].copy()
@@ -184,7 +181,6 @@ def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFram
         df = df.drop(columns=[timestamp_col])
         df.index = pd.date_range(start='2023-01-01', periods=len(df), freq='10s')
     
-    
     # Resample to 10s intervals and take mean
     resample_interval = '10s'
     df_resampled = df.resample(resample_interval).mean()
@@ -197,7 +193,6 @@ def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFram
     
     df_final = df_processed.reset_index()
     
-    
     return df_final
 
 def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataFrame:
@@ -208,8 +203,6 @@ def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataF
     """
     
     df = data.copy()
-    
-    # Debug information
     
     # Check for duplicate columns
     duplicate_cols = df.columns[df.columns.duplicated()].tolist()
@@ -293,7 +286,6 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
     df_feat.dropna(inplace=True)
     final_length = len(df_feat)
     
-    
     return df_feat.reset_index()
 
 def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_features: List[str]) -> Dict[str, Dict[str, float]]:
@@ -313,7 +305,6 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     
     time_series_features = [col for col in data.columns if col not in original_cols]
     all_features = selected_features + time_series_features
-    
     
     correlations = {}
     
@@ -351,8 +342,6 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
                            if feature not in selected_features and feature != selected_label]
     time_series_weights = [float(abs(all_corr[feature])) for feature in time_series_features]
     
-    # Debug information
-    
     # Verify selected_label is not in base_features
     if selected_label in base_features:
         base_features = [f for f in base_features if f != selected_label]
@@ -366,7 +355,6 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
             'time_series_weights': time_series_weights
         }
     }
-    
     
     # Verify the structure
     config = target_config[selected_label]
@@ -506,6 +494,5 @@ def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: s
     
     # Save the data with all engineered features
     data.to_csv(processed_path, index=False)
-    
     
     return processed_path
