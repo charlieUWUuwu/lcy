@@ -369,7 +369,6 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     """
     
     images_folder = os.path.join(save_folder_path, "images")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Clean old images before generating new ones
     _clean_old_images(images_folder)
@@ -405,8 +404,8 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
         ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
     
     plt.tight_layout()
-    # Updated naming format: {file_name}_all_{timestamp}.png
-    selected_path = os.path.join(images_folder, f"{file_name}_all_{timestamp}.png")
+
+    selected_path = os.path.join(images_folder, f"{file_name}_all.png")
     plt.savefig(selected_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
     image_paths['all'] = selected_path  # Changed key from 'selected_features' to 'all'
@@ -437,8 +436,7 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
         ax.set_title(f'Correlations: {selected_label} Positive Class vs Selected Features', fontsize=14)
     
     plt.tight_layout()
-    # Updated naming format: {file_name}_positive_{timestamp}.png
-    positive_path = os.path.join(images_folder, f"{file_name}_positive_{timestamp}.png")
+    positive_path = os.path.join(images_folder, f"{file_name}_positive.png")
     plt.savefig(positive_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
     image_paths['positive'] = positive_path  # Changed key from 'positive_label' to 'positive'
@@ -469,8 +467,8 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
         ax.set_title(f'Correlations: {selected_label} Negative Class vs Selected Features', fontsize=14)
     
     plt.tight_layout()
-    # Updated naming format: {file_name}_negative_{timestamp}.png
-    negative_path = os.path.join(images_folder, f"{file_name}_negative_{timestamp}.png")
+
+    negative_path = os.path.join(images_folder, f"{file_name}_negative.png")
     plt.savefig(negative_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
     image_paths['negative'] = negative_path  # Changed key from 'negative_label' to 'negative'
@@ -487,9 +485,8 @@ def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: s
         file_name: Original file name without extension
     """
     
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # Use the original file name in the processed file name
-    processed_filename = f"{file_name}_processed_{timestamp}.csv"
+    processed_filename = f"{file_name}_processed.csv"
     processed_path = os.path.join(save_folder_path, processed_filename)
     
     # Save the data with all engineered features
