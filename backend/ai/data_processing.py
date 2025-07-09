@@ -66,7 +66,7 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         
         # Step 5 - Generate TARGET_CONFIG, Save weights as separate CSV file
         target_config = _generate_target_config(correlations, selected_label, selected_features, engineered_data)
-        weights_data_path = _save_feature_weights_csv(engineered_data, correlations, save_folder_path, file_name)
+        weights_data_path = _save_feature_weights_csv(engineered_data, correlations, selected_label, save_folder_path, file_name)
 
         # Step 6 - Generate correlation images (only selected_features, no time series)
         image_paths = _generate_correlation_images(
@@ -340,41 +340,42 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     
     return target_config
 
-def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], 
+def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], selected_label: str,
                              save_folder_path: str, file_name: str = 'data') -> str:
     """
-    Save feature weights to a separate CSV file
+    Save feature weights to a separate CSV file (single row only)
     """
-    # Create a copy of the DataFrame
-    df = data.copy()
-    
     # Get all correlations
     all_corr = correlations['label_vs_all_features']
     
     # Create a new row with feature weights
     weights_row = {}
+
+    # Identify timestamp column (typically first column)
+    timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
     
     # For each column in the dataframe, assign the corresponding weight or 0.0
-    for column in df.columns:
+    for column in data.columns:
+        # Skip timestamp and selected label columns
+        if column == timestamp_col or column == selected_label:
+            continue
+            
         if column in all_corr:
             # Use absolute correlation value as weight
             weights_row[column] = abs(all_corr[column])
         else:
-            # For columns without correlation (like timestamp or label columns), use 0.0
+            # For columns without correlation, use 0.0
             weights_row[column] = 0.0
     
-    # Create a new DataFrame with the weights as the first row
+    # Create a DataFrame with just the weights row
     weights_df = pd.DataFrame([weights_row])
-    
-    # Create a copy of the original data
-    data_with_weights = pd.concat([weights_df, df], ignore_index=True)
     
     # Create a filename for the weights CSV
     weights_filename = f"{file_name}_weights.csv"
     weights_path = os.path.join(save_folder_path, weights_filename)
     
-    # Save the weights CSV
-    data_with_weights.to_csv(weights_path, index=False)
+    # Save ONLY the weights row to CSV
+    weights_df.to_csv(weights_path, index=False)
     
     return weights_path
 
