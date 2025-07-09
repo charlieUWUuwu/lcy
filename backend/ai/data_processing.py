@@ -70,7 +70,7 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
 
         # Step 6 - Generate correlation images (only selected_features, no time series)
         image_paths = _generate_correlation_images(
-            processed_data, selected_features, selected_label, save_folder_path, file_name
+            cleaned_data, selected_features, selected_label, save_folder_path, file_name
         )
         
         # Step 7 - Save processed data
@@ -295,13 +295,8 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     """
     Step 4: Calculate correlations - only selected_label vs (selected_features + time_series_features)
     """
-    
-    # Get positive and negative label columns
-    positive_col = f"{selected_label}_positive"
-    negative_col = f"{selected_label}_negative"
-    
-    # Get time series features (all columns that are not original features or labels)
-    original_cols = set(selected_features + [selected_label, positive_col, negative_col])
+    # Get time series features (all columns that are not original features or label)
+    original_cols = set(selected_features + [selected_label])
     timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
     if timestamp_col:
         original_cols.add(timestamp_col)
@@ -311,17 +306,9 @@ def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_fe
     
     correlations = {}
     
-    # 1. Selected label vs (selected_features + time_series_features)
+    # Selected label vs (selected_features + time_series_features)
     label_corr = data[all_features].corrwith(data[selected_label])
     correlations['label_vs_all_features'] = label_corr.dropna().to_dict()
-    
-    # 2. Positive label vs (selected_features + time_series_features)
-    positive_corr = data[all_features].corrwith(data[positive_col])
-    correlations['positive_vs_all_features'] = positive_corr.dropna().to_dict()
-    
-    # 3. Negative label vs (selected_features + time_series_features)
-    negative_corr = data[all_features].corrwith(data[negative_col])
-    correlations['negative_vs_all_features'] = negative_corr.dropna().to_dict()
     
     return correlations
 
@@ -331,31 +318,23 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     Step 5: Generate target config dictionary with feature weights
     """
     # Get all correlations
-    all_corr = correlations['label_vs_all_features']
+    base_corr = correlations['label_vs_all_features']
     
-    # Filter base features to include only those in all_corr and exclude selected_label
-    base_features = [feature for feature in selected_features if feature in all_corr and feature != selected_label]
-    base_weights = [float(abs(all_corr[feature])) for feature in base_features]
+    # Filter base features to include only those in base_corr and exclude selected_label
+    base_features = [feature for feature in selected_features if feature in base_corr and feature != selected_label]
+    base_weights = [float(abs(base_corr[feature])) for feature in base_features]
     
     # Get time series features (all columns that are not original features or labels)
-    positive_col = f"{selected_label}_positive"
-    negative_col = f"{selected_label}_negative"
-    original_cols = set(selected_features + [selected_label, positive_col, negative_col])
+    original_cols = set(selected_features + [selected_label])
     timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
     if timestamp_col:
         original_cols.add(timestamp_col)
-    
-    # Filter time series features to include only those in all_corr
-    time_series_features = [col for col in data.columns if col not in original_cols and col in all_corr]
-    time_series_weights = [float(abs(all_corr[feat])) for feat in time_series_features]
     
     # Create target_config
     target_config = {
         selected_label: {
             'base_features': base_features,
             'base_feature_weights': base_weights,
-            'time_series_features': time_series_features,
-            'time_series_weights': time_series_weights
         }
     }
     
@@ -412,11 +391,7 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     
     image_paths = {}
     
-    # Get positive and negative label columns
-    positive_col = f"{selected_label}_positive"
-    negative_col = f"{selected_label}_negative"
-    
-    # 1. Selected label vs selected features - ALL (Updated naming)
+    # Selected label vs selected features
     fig, ax = plt.subplots(figsize=(12, 8))
     
     label_corr = data[selected_features].corrwith(data[selected_label])
@@ -442,74 +417,10 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     
     plt.tight_layout()
 
-    selected_path = os.path.join(images_folder, f"{file_name}_all.png")
+    selected_path = os.path.join(images_folder, f"{file_name}_correlation.png")
     plt.savefig(selected_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    image_paths['all'] = selected_path  # Changed key from 'selected_features' to 'all'
-    
-    # 2. Positive label vs selected features - POSITIVE (Updated naming)
-    fig, ax = plt.subplots(figsize=(12, 8))
-    
-    positive_corr = data[selected_features].corrwith(data[positive_col])
-    positive_corr = positive_corr.dropna()
-    
-    if not positive_corr.empty:
-        colors = ['lightgreen' if x > 0 else 'lightcoral' for x in positive_corr.values]
-        bars = ax.bar(range(len(positive_corr)), positive_corr.values, color=colors, alpha=0.7)
-        
-        for i, (feature, corr) in enumerate(positive_corr.items()):
-            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
-                   ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
-        
-        ax.set_xlabel('Selected Features')
-        ax.set_ylabel('Correlation Coefficient')
-        ax.set_title(f'Correlations: {selected_label} Positive Class vs Selected Features', fontsize=14)
-        ax.set_xticks(range(len(positive_corr)))
-        ax.set_xticklabels(positive_corr.index, rotation=45, ha='right')
-        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
-        ax.grid(True, alpha=0.3)
-    else:
-        ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
-        ax.set_title(f'Correlations: {selected_label} Positive Class vs Selected Features', fontsize=14)
-    
-    plt.tight_layout()
-    positive_path = os.path.join(images_folder, f"{file_name}_positive.png")
-    plt.savefig(positive_path, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-    image_paths['positive'] = positive_path  # Changed key from 'positive_label' to 'positive'
-    
-    # 3. Negative label vs selected features - NEGATIVE (Updated naming)
-    fig, ax = plt.subplots(figsize=(12, 8))
-    
-    negative_corr = data[selected_features].corrwith(data[negative_col])
-    negative_corr = negative_corr.dropna()
-    
-    if not negative_corr.empty:
-        colors = ['lightgreen' if x > 0 else 'lightcoral' for x in negative_corr.values]
-        bars = ax.bar(range(len(negative_corr)), negative_corr.values, color=colors, alpha=0.7)
-        
-        for i, (feature, corr) in enumerate(negative_corr.items()):
-            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
-                   ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
-        
-        ax.set_xlabel('Selected Features')
-        ax.set_ylabel('Correlation Coefficient')
-        ax.set_title(f'Correlations: {selected_label} Negative Class vs Selected Features', fontsize=14)
-        ax.set_xticks(range(len(negative_corr)))
-        ax.set_xticklabels(negative_corr.index, rotation=45, ha='right')
-        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
-        ax.grid(True, alpha=0.3)
-    else:
-        ax.text(0.5, 0.5, 'No correlations found', ha='center', va='center', transform=ax.transAxes)
-        ax.set_title(f'Correlations: {selected_label} Negative Class vs Selected Features', fontsize=14)
-    
-    plt.tight_layout()
-
-    negative_path = os.path.join(images_folder, f"{file_name}_negative.png")
-    plt.savefig(negative_path, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-    image_paths['negative'] = negative_path  # Changed key from 'negative_label' to 'negative'
-    
+    image_paths['correlation'] = selected_path  # Use a more generic key name
     
     return image_paths
 
