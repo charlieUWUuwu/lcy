@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple, Any
 
-def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str, file_name: str = 'data') -> Dict[str, Any]:
+def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str = 'data') -> Dict[str, Any]:
     """
     Complete data processing pipeline:
     1. Data cleaning (only selected_features + selected_label)
@@ -35,6 +35,7 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         # Ensure save directory exists
         os.makedirs(save_folder_path, exist_ok=True)
         os.makedirs(os.path.join(save_folder_path, "images"), exist_ok=True)
+        file_name = os.path.splitext(os.path.basename(csv_path))[0]
                 
         # Load data
         if not os.path.exists(csv_path):

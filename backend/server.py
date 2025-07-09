@@ -68,9 +68,7 @@ def data_processing_endpoint():
         selected_features = data.get('selected_features', [])
         selected_label = data.get('selected_label')
         exp_folder_path = data.get('exp_folder_path', '')
-        raw_training_csv_path = data.get('raw_training_csv_path', '') # Get CSV path from frontend
-        file_name = data.get('fileName', 'data') # Get fileName from frontend
-        
+        raw_training_csv_path = data.get('raw_training_csv_path', '')
         
         if not selected_features:
             return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
@@ -85,7 +83,7 @@ def data_processing_endpoint():
             return jsonify({'error': 'No CSV path provided', 'status': 'failed'}), 400
         
         # Run the complete data processing pipeline with fileName
-        result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path, file_name)
+        result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path)
         
         
         # Ensure all values are JSON serializable
