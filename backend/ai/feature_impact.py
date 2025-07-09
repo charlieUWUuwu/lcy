@@ -9,10 +9,19 @@ from datetime import datetime
 DEFAULT_TOP_N = 10
 DEFAULT_THRESHOLD = 0.4
 
-def get_top_features(csv_pth, selected_label, selected_features):
+def get_top_features(csv_pth, selected_label, selected_features, target_filter_mode):
     """
     Calculate top N features with correlations >threshold to the selected label
     If not enough features meet the threshold, use all features >threshold
+
+    Args:
+    csv_pth: Path to the CSV file
+    selected_label: Target label column name
+    selected_features: List of features to analyze
+    target_filter_mode: Filter mode ("all", "positive", or "negative")
+        
+    Returns:
+        Dictionary with top features and correlation details
     """
     
     try:
@@ -29,6 +38,18 @@ def get_top_features(csv_pth, selected_label, selected_features):
         if not available_features:
             raise Exception("No valid features found for analysis")
         
+        # Filter data based on target_filter_mode
+        if target_filter_mode == "positive":
+            # Keep only rows where selected_label > 0
+            data = data[data[selected_label] > 0]
+            if len(data) == 0:
+                raise Exception(f"No positive values found for {selected_label}")
+        elif target_filter_mode == "negative":
+            # Keep only rows where selected_label < 0
+            data = data[data[selected_label] < 0]
+            if len(data) == 0:
+                raise Exception(f"No negative values found for {selected_label}")
+
         # Calculate correlations with the selected label
         correlations = data[available_features].corrwith(data[selected_label])
         
