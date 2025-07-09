@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple, Any
 
-def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str) -> Dict[str, Any]:
+def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str, target_filter_mode: str) -> Dict[str, Any]:
     """
     Complete data processing pipeline:
     1. Data cleaning (only selected_features + selected_label)
@@ -148,57 +148,42 @@ def _clean_data(data: pd.DataFrame, selected_features: List[str]) -> pd.DataFram
     
     return df_final
 
-def _separate_label_classes(data: pd.DataFrame, selected_label: str) -> pd.DataFrame:
+def _separate_label_classes(data: pd.DataFrame, selected_label: str, target_filter_mode: str) -> pd.DataFrame:
     """
-    Step 2: Label separation - create positive and negative class columns as last 2 columns
-    Positive column: copy value if value > 0, else 0
-    Negative column: copy value if value < 0, else 0
-    """
+    Filter data based on target_filter_mode:
+    - "all": Keep all rows (no filtering)
+    - "positive": Only keep rows where selected_label > 0
+    - "negative": Only keep rows where selected_label < 0
     
+    Args:
+        data: Input DataFrame
+        selected_label: Target label column name
+        target_filter_mode: Filtering mode ("all", "positive", or "negative")
+        
+    Returns:
+        Filtered DataFrame
+    """
     df = data.copy()
     
-    # Check for duplicate columns
-    duplicate_cols = df.columns[df.columns.duplicated()].tolist()
-    if duplicate_cols:
-        # Remove duplicate columns, keep first occurrence
-        df = df.loc[:, ~df.columns.duplicated()]
+    # Return all data if mode is "all" or invalid
+    if target_filter_mode not in ["positive", "negative"]:
+        return df
     
-    # Ensure the selected_label exists
-    if selected_label not in df.columns:
-        raise Exception(f"Selected label '{selected_label}' not found in columns: {list(df.columns)}")
+    # Apply filtering based on target_filter_mode
+    if target_filter_mode == "positive":
+        # Keep only rows where selected_label > 0
+        df = df[df[selected_label] > 0]
+    elif target_filter_mode == "negative":
+        # Keep only rows where selected_label < 0
+        df = df[df[selected_label] < 0]
     
-    # Extract the label column as a Series
-    try:
-        # Use column location to ensure we get a Series
-        label_col_index = df.columns.get_loc(selected_label)
-        if isinstance(label_col_index, slice) or hasattr(label_col_index, '__iter__'):
-            label_col_index = label_col_index[0] if hasattr(label_col_index, '__iter__') else label_col_index.start
-        
-        label_series = df.iloc[:, label_col_index]
-    except Exception as e:
-        # Fallback: use direct column access
-        label_series = df[selected_label]
-        if isinstance(label_series, pd.DataFrame):
-            label_series = label_series.iloc[:, 0]
+    # Reset index after filtering
+    df = df.reset_index(drop=True)
     
-    # Create masks for positive and negative values
-    positive_mask = label_series > 0
-    negative_mask = label_series < 0
+    # If no rows match the filter, warn and return empty DataFrame
+    if len(df) == 0:
+        print(f"Warning: No rows match the {target_filter_mode} filter for {selected_label}")
     
-    # Ensure masks are Series, not DataFrame
-    if isinstance(positive_mask, pd.DataFrame):
-        positive_mask = positive_mask.iloc[:, 0]
-    if isinstance(negative_mask, pd.DataFrame):
-        negative_mask = negative_mask.iloc[:, 0]
-    
-    # Create positive and negative class columns
-    positive_col = f"{selected_label}_positive"
-    negative_col = f"{selected_label}_negative"
-    
-    df[positive_col] = np.where(positive_mask, label_series, 0)
-    
-    df[negative_col] = np.where(negative_mask, label_series, 0)
-        
     return df
 
 def _create_time_series_features(data: pd.DataFrame, selected_features: List[str], selected_label: str) -> pd.DataFrame:

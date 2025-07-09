@@ -69,7 +69,11 @@ def data_processing_endpoint():
         selected_label = data.get('selected_label')
         exp_folder_path = data.get('exp_folder_path', '')
         raw_training_csv_path = data.get('raw_training_csv_path', '')
+        target_filter_mode = data.get('target_filter_mode')
         
+        if target_filter_mode not in ['positive', 'negative', 'all']:
+            return jsonify({'error': 'Invalid target filter mode', 'msg': 'failed'}), 400
+ 
         if not selected_features:
             return jsonify({'error': 'No features selected', 'msg': 'failed'}), 400
         
@@ -83,7 +87,7 @@ def data_processing_endpoint():
             return jsonify({'error': 'No CSV path provided', 'msg': 'failed'}), 400
         
         # Run the complete data processing pipeline with fileName
-        result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path)
+        result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path, target_filter_mode)
         
         
         # Ensure all values are JSON serializable
