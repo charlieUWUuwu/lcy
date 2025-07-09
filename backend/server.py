@@ -25,10 +25,10 @@ class NumpyEncoder(json.JSONEncoder):
 @app.route('/api/top-features', methods=['POST'])
 def top_features():
     try:
-        csv_pth = request.json.get('csv_pth', '')
+        raw_training_csv_path = request.json.get('raw_training_csv_path', '')
         data = request.get_json()
-        selected_label = data.get('selectedLabel')
-        selected_features = data.get('allFeatures', [])
+        selected_label = data.get('selected_label')
+        selected_features = data.get('selected_features', [])
         
         if not selected_label:
             return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
@@ -37,7 +37,7 @@ def top_features():
             return jsonify({'error': 'No features available', 'status': 'failed'}), 400
         
         # Get top features with threshold
-        result = get_top_features(csv_pth, selected_label, selected_features)
+        result = get_top_features(raw_training_csv_path, selected_label, selected_features)
         
         # Ensure all values are JSON serializable
         response_data = {
@@ -65,10 +65,10 @@ def top_features():
 def data_processing_endpoint():
     try:
         data = request.get_json()
-        selected_features = data.get('selectedFeatures', [])
-        selected_label = data.get('selectedLabel')
-        save_folder_path = data.get('saveFolderPath', '')
-        csv_path = data.get('csvPath', '') # Get CSV path from frontend
+        selected_features = data.get('selected_features', [])
+        selected_label = data.get('selected_label')
+        exp_folder_path = data.get('exp_folder_path', '')
+        raw_training_csv_path = data.get('raw_training_csv_path', '') # Get CSV path from frontend
         file_name = data.get('fileName', 'data') # Get fileName from frontend
         
         
@@ -78,22 +78,22 @@ def data_processing_endpoint():
         if not selected_label:
             return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
             
-        if not save_folder_path:
+        if not exp_folder_path:
             return jsonify({'error': 'No save folder selected', 'status': 'failed'}), 400
             
-        if not csv_path:
+        if not raw_training_csv_path:
             return jsonify({'error': 'No CSV path provided', 'status': 'failed'}), 400
         
         # Run the complete data processing pipeline with fileName
-        result = data_processing(selected_features, selected_label, save_folder_path, csv_path, file_name)
+        result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path, file_name)
         
         
         # Ensure all values are JSON serializable
         response_data = {
-            'target_config': result['target_config'],  # Added back
-            'correlation_images': result['correlation_images'],
-            'processed_data_path': result['processed_data_path'],
-            'weights_data_path': result['weights_data_path'],  # New output
+            'corr_img_path': result['corr_img_path'],
+            'training_csv_path': result['training_csv_path'],
+            'weight_csv_path': result['weight_csv_path'],
+            'weight_base_config': result['weight_base_config'],
             'status': 'completed'
         }
         

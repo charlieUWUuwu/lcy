@@ -77,10 +77,10 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         processed_data_path = _save_processed_data(engineered_data, save_folder_path, file_name)
         
         return {
-            'target_config': target_config,
-            'correlation_images': image_paths,
-            'processed_data_path': processed_data_path,
-            'weights_data_path': weights_data_path,
+            'corr_img_path': image_paths,
+            'training_csv_path': processed_data_path,
+            'weight_csv_path': weights_data_path,
+            'weight_base_config': target_config,
             'status': 'completed'
         }
         
