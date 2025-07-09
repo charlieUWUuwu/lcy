@@ -54,11 +54,15 @@ class NumpyEncoder(json.JSONEncoder):
 @app.route('/api/top-features', methods=['POST'])
 def top_features():
     try:
-        csv_pth = request.json.get('csv_pth', '')
+        raw_training_csv_path = request.json.get('raw_training_csv_path', '')
         data = request.get_json()
-        selected_label = data.get('selectedLabel')
-        selected_features = data.get('allFeatures', [])
-        
+        selected_label = data.get('selected_label')
+        selected_features = data.get('selected_features', [])
+        target_filter_mode = data.get('target_filter_mode') 
+
+        if target_filter_mode not in ['positive', 'negative', 'all']:
+            return jsonify({'error': 'Invalid target filter mode', 'msg': 'failed'}), 400
+         
         if not selected_label:
             return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
         
@@ -66,7 +70,7 @@ def top_features():
             return jsonify({'error': 'No features available', 'status': 'failed'}), 400
         
         # Get top features with threshold
-        result = get_top_features(csv_pth, selected_label, selected_features)
+        result = get_top_features(raw_training_csv_path, selected_label, selected_features, target_filter_mode)
         
         # Ensure all values are JSON serializable
         response_data = {
