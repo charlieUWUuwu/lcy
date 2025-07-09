@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import Dict, List, Tuple, Any
 
-def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str = 'data') -> Dict[str, Any]:
+def data_processing(selected_features: List[str], selected_label: str, save_folder_path: str, csv_path: str) -> Dict[str, Any]:
     """
     Complete data processing pipeline:
     1. Data cleaning (only selected_features + selected_label)
@@ -291,7 +291,7 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     return target_config
 
 def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], selected_label: str,
-                             save_folder_path: str, file_name: str = 'data') -> str:
+                             save_folder_path: str, file_name: str) -> str:
     """
     Save feature weights to a separate CSV file (single row only)
     """
@@ -330,7 +330,7 @@ def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[s
     return weights_path
 
 def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str], 
-                                selected_label: str, save_folder_path: str, file_name: str = 'data') -> Dict[str, str]:
+                                selected_label: str, save_folder_path: str, file_name: str) -> Dict[str, str]:
     """
     Step 6: Generate correlation images - only for selected_features (no time series)
     """
@@ -372,7 +372,7 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     
     return image_paths
 
-def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: str = 'data') -> str:
+def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: str) -> str:
     """
     Step 7: Save final CSV with all features (original + time series + label classes)
     Args:
