@@ -31,10 +31,10 @@ def top_features():
         selected_features = data.get('selected_features', [])
         
         if not selected_label:
-            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
+            return jsonify({'error': 'No label selected', 'msg': 'failed'}), 400
         
         if not selected_features:
-            return jsonify({'error': 'No features available', 'status': 'failed'}), 400
+            return jsonify({'error': 'No features available', 'msg': 'failed'}), 400
         
         # Get top features with threshold
         result = get_top_features(raw_training_csv_path, selected_label, selected_features)
@@ -48,7 +48,7 @@ def top_features():
             'threshold_used': float(result['threshold_used']),
             'features_above_threshold': int(result['features_above_threshold']),
             'used_threshold_filter': bool(result['used_threshold_filter']),
-            'status': 'completed'
+            'msg': 'completed'
         }
         
         # Use custom encoder for JSON serialization
@@ -59,7 +59,7 @@ def top_features():
         )
         
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'failed'}), 500
+        return jsonify({'error': str(e), 'msg': 'failed'}), 500
 
 @app.route('/api/data-processing', methods=['POST'])
 def data_processing_endpoint():
@@ -71,16 +71,16 @@ def data_processing_endpoint():
         raw_training_csv_path = data.get('raw_training_csv_path', '')
         
         if not selected_features:
-            return jsonify({'error': 'No features selected', 'status': 'failed'}), 400
+            return jsonify({'error': 'No features selected', 'msg': 'failed'}), 400
         
         if not selected_label:
-            return jsonify({'error': 'No label selected', 'status': 'failed'}), 400
+            return jsonify({'error': 'No label selected', 'msg': 'failed'}), 400
             
         if not exp_folder_path:
-            return jsonify({'error': 'No save folder selected', 'status': 'failed'}), 400
+            return jsonify({'error': 'No save folder selected', 'msg': 'failed'}), 400
             
         if not raw_training_csv_path:
-            return jsonify({'error': 'No CSV path provided', 'status': 'failed'}), 400
+            return jsonify({'error': 'No CSV path provided', 'msg': 'failed'}), 400
         
         # Run the complete data processing pipeline with fileName
         result = data_processing(selected_features, selected_label, exp_folder_path, raw_training_csv_path)
@@ -92,7 +92,7 @@ def data_processing_endpoint():
             'training_csv_path': result['training_csv_path'],
             'weight_csv_path': result['weight_csv_path'],
             'weight_base_config': result['weight_base_config'],
-            'status': 'completed'
+            'msg': 'completed'
         }
         
         # Use custom encoder for JSON serialization
@@ -103,7 +103,7 @@ def data_processing_endpoint():
         )
         
     except Exception as e:
-        return jsonify({'error': str(e), 'status': 'failed'}), 500
+        return jsonify({'error': str(e), 'msg': 'failed'}), 500
     
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=3500, debug=True)

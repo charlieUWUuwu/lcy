@@ -82,7 +82,6 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
             'training_csv_path': processed_data_path,
             'weight_csv_path': weights_data_path,
             'weight_base_config': target_config,
-            'status': 'completed'
         }
         
     except Exception as e:
