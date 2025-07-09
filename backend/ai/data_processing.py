@@ -47,18 +47,10 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
         cleaned_data = _clean_data(data, selected_features)
         
         # Step 2 - Label separation (positive/negative)
-        processed_data = _separate_label_classes(cleaned_data, selected_label)
-        
-        # Save the position of label columns before step 3
-        positive_col = f"{selected_label}_positive"
-        negative_col = f"{selected_label}_negative"
-        label_columns = [selected_label, positive_col, negative_col]
+        processed_data = _separate_label_classes(cleaned_data, selected_label, target_filter_mode)
         
         # Step 3 - Time series feature engineering
         engineered_data = _create_time_series_features(processed_data, selected_features, selected_label)
-        
-        # Reorder columns: put label columns (selected_label + positive + negative) at the end
-        engineered_data = _reorder_label_columns_to_end(engineered_data, label_columns)
         
         # Step 4 - Calculate correlations
         correlations = _calculate_correlations(engineered_data, selected_label, selected_features)
@@ -85,28 +77,30 @@ def data_processing(selected_features: List[str], selected_label: str, save_fold
     except Exception as e:
         raise Exception(f"Error in data processing: {str(e)}")
 
-def _reorder_label_columns_to_end(data: pd.DataFrame, label_columns: List[str]) -> pd.DataFrame:
+def _reorder_label_columns_to_end(data: pd.DataFrame, selected_label: str) -> pd.DataFrame:
     """
-    Reorder columns to move label columns (selected_label + positive + negative) to the end
+    Reorder columns to move selected_label to the end
+    
+    Args:
+        data: DataFrame to reorder
+        selected_label: Label column to move to the end
+    
+    Returns:
+        Reordered DataFrame
     """
+    # Check if selected_label exists in the dataframe
+    if selected_label not in data.columns:
+        # If the label doesn't exist, return the dataframe unchanged
+        return data.copy()
     
-    # Get all columns that are not label columns
-    other_columns = [col for col in data.columns if col not in label_columns]
+    # Get all columns except the selected_label
+    other_columns = [col for col in data.columns if col != selected_label]
     
-    # Check if all label columns exist in the data
-    missing_label_cols = [col for col in label_columns if col not in data.columns]
-    if missing_label_cols:
-        # Only use existing label columns
-        existing_label_cols = [col for col in label_columns if col in data.columns]
-    else:
-        existing_label_cols = label_columns
-    
-    # Create new column order: other columns first, then label columns
-    new_column_order = other_columns + existing_label_cols
+    # Create new column order: other columns first, then label column
+    new_column_order = other_columns + [selected_label]
     
     # Reorder the dataframe
     reordered_data = data[new_column_order].copy()
-    
     
     return reordered_data
         
@@ -220,11 +214,14 @@ def _create_time_series_features(data: pd.DataFrame, selected_features: List[str
         df_feat[f'{selected_label}_roll_std_{window}'] = df_feat[selected_label].rolling(window=window, min_periods=1).std()
     
     # Drop rows with NaN values from lag features
-    initial_length = len(df_feat)
     df_feat.dropna(inplace=True)
-    final_length = len(df_feat)
+
+    engineered_data = df_feat.reset_index()
+
+    # Reorder columns to move selected_label to the end
+    engineered_data = _reorder_label_columns_to_end(engineered_data, selected_label)
     
-    return df_feat.reset_index()
+    return engineered_data
 
 def _calculate_correlations(data: pd.DataFrame, selected_label: str, selected_features: List[str]) -> Dict[str, Dict[str, float]]:
     """
