@@ -48,7 +48,7 @@ def top_features():
             'threshold_used': float(result['threshold_used'], 4),
             'features_above_threshold': int(result['features_above_threshold']),
             'used_threshold_filter': bool(result['used_threshold_filter']),
-            'msg': 'completed'
+            'msg': 'success'
         }
         
         # Use custom encoder for JSON serialization
@@ -96,7 +96,7 @@ def data_processing_endpoint():
             'training_csv_path': result['training_csv_path'],
             'weight_csv_path': result['weight_csv_path'],
             'weight_base_config': result['weight_base_config'],
-            'msg': 'completed'
+            'msg': 'success'
         }
         
         # Use custom encoder for JSON serialization
