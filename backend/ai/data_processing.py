@@ -250,27 +250,17 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     Step 5: Generate target config dictionary with feature weights
     """
     # Get all correlations
-    base_corr = correlations['label_vs_all_features']
+    all_corr = correlations['label_vs_all_features']
     
-    # Filter base features to include only those in base_corr and exclude selected_label
-    base_features = [feature for feature in selected_features if feature in base_corr and feature != selected_label]
-    base_weights = [round(float(abs(base_corr[feature])), 4) for feature in base_features]
+    # Create flat weight_base_config structure
+    weight_base_config = {}
     
-    # Get time series features (all columns that are not original features or labels)
-    original_cols = set(selected_features + [selected_label])
-    timestamp_col = data.columns[0] if not isinstance(data.index, pd.DatetimeIndex) else None
-    if timestamp_col:
-        original_cols.add(timestamp_col)
+    # Add base features weights (exclude selected_label)
+    for feature in selected_features:
+        if feature in all_corr and feature != selected_label:
+            weight_base_config[feature] = round(float(abs(all_corr[feature])), 4)
     
-    # Create target_config
-    target_config = {
-        selected_label: {
-            'base_features': base_features,
-            'base_feature_weights': base_weights,
-        }
-    }
-    
-    return target_config
+    return weight_base_config
 
 def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[str, float]], selected_label: str,
                              save_folder_path: str, file_name: str) -> str:
@@ -289,7 +279,7 @@ def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[s
     # For each column in the dataframe, assign the corresponding weight or 0.0
     for column in data.columns:
         # Skip timestamp and selected label columns
-        if column == timestamp_col or column == selected_label:
+        if column == timestamp_col:
             continue
             
         if column in all_corr:
