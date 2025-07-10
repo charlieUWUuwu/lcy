@@ -302,14 +302,13 @@ def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[s
     return weights_path
 
 def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str], 
-                                selected_label: str, save_folder_path: str, file_name: str) -> Dict[str, str]:
+                                selected_label: str, save_folder_path: str, file_name: str) -> str:
     """
-    Step 6: Generate correlation images - only for selected_features (no time series)
+    Step 6: Generate correlation image - only for selected_features (no time series)
+    Returns single image path as string
     """
     
     images_folder = os.path.join(save_folder_path, "images")
-    
-    image_paths = {}
     
     # Selected label vs selected features
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -322,7 +321,7 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
         bars = ax.bar(range(len(label_corr)), label_corr.values, color=colors, alpha=0.7)
         
         for i, (feature, corr) in enumerate(label_corr.items()):
-            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.3f}', 
+            ax.text(i, corr + (0.01 if corr >= 0 else -0.03), f'{corr:.4f}', 
                    ha='center', va='bottom' if corr >= 0 else 'top', fontsize=10)
         
         ax.set_xlabel('Selected Features')
@@ -340,9 +339,8 @@ def _generate_correlation_images(data: pd.DataFrame, selected_features: List[str
     selected_path = os.path.join(images_folder, f"{file_name}_correlation.png")
     plt.savefig(selected_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    image_paths['correlation'] = selected_path  # Use a more generic key name
     
-    return image_paths
+    return selected_path
 
 def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: str) -> str:
     """
