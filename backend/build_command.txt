@@ -1,0 +1,1 @@
+pyinstaller --onefile --name backend_server --add-data "ai;ai" server.py
