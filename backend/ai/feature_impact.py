@@ -9,10 +9,19 @@ from datetime import datetime
 DEFAULT_TOP_N = 10
 DEFAULT_THRESHOLD = 0.4
 
-def get_top_features(csv_pth, selected_label, selected_features):
+def get_top_features(csv_pth, selected_label, selected_features, target_filter_mode):
     """
     Calculate top N features with correlations >threshold to the selected label
     If not enough features meet the threshold, use all features >threshold
+
+    Args:
+    csv_pth: Path to the CSV file
+    selected_label: Target label column name
+    selected_features: List of features to analyze
+    target_filter_mode: Filter mode ("all", "positive", or "negative")
+        
+    Returns:
+        Dictionary with top features and correlation details
     """
     
     try:
@@ -29,6 +38,18 @@ def get_top_features(csv_pth, selected_label, selected_features):
         if not available_features:
             raise Exception("No valid features found for analysis")
         
+        # Filter data based on target_filter_mode
+        if target_filter_mode == "positive":
+            # Keep only rows where selected_label > 0
+            data = data[data[selected_label] > 0]
+            if len(data) == 0:
+                raise Exception(f"No positive values found for {selected_label}")
+        elif target_filter_mode == "negative":
+            # Keep only rows where selected_label < 0
+            data = data[data[selected_label] < 0]
+            if len(data) == 0:
+                raise Exception(f"No negative values found for {selected_label}")
+
         # Calculate correlations with the selected label
         correlations = data[available_features].corrwith(data[selected_label])
         
@@ -60,20 +81,20 @@ def get_top_features(csv_pth, selected_label, selected_features):
         correlation_details = {}
         for i, feature in enumerate(top_features):
             correlation_details[feature] = {
-                'correlation': float(correlations[feature]),
-                'abs_correlation': float(abs(correlations[feature])),
-                'rank': int(i + 1),  # Convert to int
-                'meets_threshold': bool(abs(correlations[feature]) > DEFAULT_THRESHOLD)  # Explicitly convert to bool
+                'correlation': round(float(correlations[feature]), 4),
+                'abs_correlation': round(float(abs(correlations[feature])), 4),
+                'rank': int(i + 1),
+                'meets_threshold': bool(abs(correlations[feature]) > DEFAULT_THRESHOLD)
             }
         
         return {
             'top_features': top_features,
-            'correlations': {feature: float(correlations[feature]) for feature in top_features},
+            'correlations': {feature: round(float(correlations[feature]), 4) for feature in top_features},
             'correlation_details': correlation_details,
-            'total_features_analyzed': int(len(available_features)),  # Convert to int
-            'threshold_used': float(DEFAULT_THRESHOLD),  # Convert to float
-            'features_above_threshold': int(len(strong_correlations)),  # Convert to int
-            'used_threshold_filter': bool(used_threshold)  # Explicitly convert to bool
+            'total_features_analyzed': int(len(available_features)),
+            'threshold_used': round(float(DEFAULT_THRESHOLD), 4),
+            'features_above_threshold': int(len(strong_correlations)),
+            'used_threshold_filter': bool(used_threshold)
         }
         
     except Exception as e:

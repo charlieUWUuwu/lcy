@@ -29,7 +29,11 @@ def top_features():
         data = request.get_json()
         selected_label = data.get('selected_label')
         selected_features = data.get('selected_features', [])
-        
+        target_filter_mode = data.get('target_filter_mode') 
+
+        if target_filter_mode not in ['positive', 'negative', 'all']:
+            return jsonify({'error': 'Invalid target filter mode', 'msg': 'failed'}), 400
+         
         if not selected_label:
             return jsonify({'error': 'No label selected', 'msg': 'failed'}), 400
         
@@ -37,7 +41,7 @@ def top_features():
             return jsonify({'error': 'No features available', 'msg': 'failed'}), 400
         
         # Get top features with threshold
-        result = get_top_features(raw_training_csv_path, selected_label, selected_features)
+        result = get_top_features(raw_training_csv_path, selected_label, selected_features, target_filter_mode)
         
         # Ensure all values are JSON serializable
         response_data = {
