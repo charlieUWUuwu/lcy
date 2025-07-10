@@ -254,7 +254,7 @@ def _generate_target_config(correlations: Dict[str, Dict[str, float]], selected_
     
     # Filter base features to include only those in base_corr and exclude selected_label
     base_features = [feature for feature in selected_features if feature in base_corr and feature != selected_label]
-    base_weights = [float(abs(base_corr[feature])) for feature in base_features]
+    base_weights = [float(abs(base_corr[feature]), 4) for feature in base_features]
     
     # Get time series features (all columns that are not original features or labels)
     original_cols = set(selected_features + [selected_label])
@@ -294,10 +294,10 @@ def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[s
             
         if column in all_corr:
             # Use absolute correlation value as weight
-            weights_row[column] = abs(all_corr[column])
+            weights_row[column] = abs(all_corr[column], 4)
         else:
             # For columns without correlation, use 0.0
-            weights_row[column] = 0.0
+            weights_row[column] = 0.0000
     
     # Create a DataFrame with just the weights row
     weights_df = pd.DataFrame([weights_row])
@@ -307,7 +307,7 @@ def _save_feature_weights_csv(data: pd.DataFrame, correlations: Dict[str, Dict[s
     weights_path = os.path.join(save_folder_path, weights_filename)
     
     # Save ONLY the weights row to CSV
-    weights_df.to_csv(weights_path, index=False)
+    weights_df.to_csv(weights_path, index=False, float_format='%.4f')
     
     return weights_path
 
@@ -368,6 +368,6 @@ def _save_processed_data(data: pd.DataFrame, save_folder_path: str, file_name: s
     processed_path = os.path.join(save_folder_path, processed_filename)
     
     # Save the data with all engineered features
-    data.to_csv(processed_path, index=False)
+    data.to_csv(processed_path, index=False, float_format='%.4f')
     
     return processed_path

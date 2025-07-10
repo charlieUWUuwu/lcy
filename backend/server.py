@@ -15,7 +15,7 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
-            return float(obj)
+            return float(obj, 4)
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.bool_):
@@ -45,7 +45,7 @@ def top_features():
             'correlations': result['correlations'],
             'correlation_details': result['correlation_details'],
             'total_features_analyzed': int(result['total_features_analyzed']),
-            'threshold_used': float(result['threshold_used']),
+            'threshold_used': float(result['threshold_used'], 4),
             'features_above_threshold': int(result['features_above_threshold']),
             'used_threshold_filter': bool(result['used_threshold_filter']),
             'msg': 'completed'
