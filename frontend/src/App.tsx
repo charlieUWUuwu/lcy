@@ -1,22 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom';
 
 import DataCleaning from './components/DataCleaning/DataCleaning';
 import Home from './components/Home';
 import ModelTraining from './components/ModelTraining/ModelTraining';
 import Navigation from './components/Navigation';
+import { DataCleaningProvider } from './contexts/DataCleaningContext';
 import './index.css';
-import { ProcessedFileData, SelectionConfig } from './types';
 
 const App: React.FC = () => {
-  // const [selectedModel, setSelectedModel] = useState<string | null>(null);
-  // const [modelAccuracy, setModelAccuracy] = useState<number | null>(null);
-
-  const [fileData, setFileData] = useState<ProcessedFileData | null>(null);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-  const [filterMode, setFilterMode] = useState<'all' | 'positive' | 'negative'>('all');
-
   return (
     <Router>
       <div className="flex h-screen">
@@ -27,19 +19,19 @@ const App: React.FC = () => {
             <Route
               path="/data-cleaning"
               element={
-                <DataCleaning
-                  fileData={fileData}
-                  setFileData={setFileData}
-                  selectedFeatures={selectedFeatures}
-                  setSelectedFeatures={setSelectedFeatures}
-                  selectedLabel={selectedLabel}
-                  setSelectedLabel={setSelectedLabel}
-                  filterMode={filterMode}
-                  setFilterMode={setFilterMode}
-                />
+                <DataCleaningProvider>
+                  <DataCleaning />
+                </DataCleaningProvider>
               }
             />
-            <Route path="/model-training" element={<ModelTraining />} />
+            <Route
+              path="/model-training"
+              element={
+                <DataCleaningProvider>
+                  <ModelTraining />
+                </DataCleaningProvider>
+              }
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

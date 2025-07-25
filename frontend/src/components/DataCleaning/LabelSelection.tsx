@@ -1,28 +1,24 @@
 import React from 'react';
 
+import { useDataCleaningContext } from '../../contexts/DataCleaningContext';
+
 interface LabelSelectionProps {
-  features: string[];
-  selectedLabel: string | null;
-  filterMode: 'all' | 'positive' | 'negative';
-  onLabelChange: (label: string | null) => void;
-  onFilterModeChange: (mode: 'all' | 'positive' | 'negative') => void;
-  // For JSON configuration
   configJson?: string;
 }
 
-const LabelSelection: React.FC<LabelSelectionProps> = ({
-  features,
-  selectedLabel,
-  filterMode,
-  onLabelChange,
-  onFilterModeChange,
-}) => {
+const LabelSelection: React.FC<LabelSelectionProps> = () => {
+  const { selectedFeatures, selectedLabel, setSelectedLabel, filterMode, setFilterMode } =
+    useDataCleaningContext();
+
   const handleLabelChange = (feature: string) => {
-    onLabelChange(feature);
+    setSelectedLabel(feature);
+    setFilterMode('all'); // 每次選新的 label，預設回 all
+    console.log('選擇模式: all');
   };
 
   const handleFilterModeChange = (mode: 'all' | 'positive' | 'negative') => {
-    onFilterModeChange(mode);
+    setFilterMode(mode);
+    console.log(`選擇模式: ${mode}`);
   };
 
   return (
@@ -31,8 +27,8 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
         Label Selection
       </div>
       <div className="max-h-60 overflow-y-auto custom-scroll border p-2 rounded shadow-sm">
-        {features.length > 0 ? (
-          features.map((feature, index) => (
+        {selectedFeatures.length > 0 ? (
+          selectedFeatures.map((feature, index) => (
             <div key={index} className="mb-2">
               <label className="flex items-center gap-[5px]">
                 <input
