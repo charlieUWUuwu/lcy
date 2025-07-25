@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [fileData, setFileData] = useState<ProcessedFileData | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+  const [filterMode, setFilterMode] = useState<'all' | 'positive' | 'negative'>('all');
 
   return (
     <Router>
@@ -33,6 +34,8 @@ const App: React.FC = () => {
                   setSelectedFeatures={setSelectedFeatures}
                   selectedLabel={selectedLabel}
                   setSelectedLabel={setSelectedLabel}
+                  filterMode={filterMode}
+                  setFilterMode={setFilterMode}
                 />
               }
             />

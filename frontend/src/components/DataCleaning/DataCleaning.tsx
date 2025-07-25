@@ -14,6 +14,8 @@ interface DataCleaningProps {
   setSelectedFeatures: (features: string[]) => void;
   selectedLabel: string | null;
   setSelectedLabel: (label: string | null) => void;
+  filterMode: 'all' | 'positive' | 'negative';
+  setFilterMode: (mode: 'all' | 'positive' | 'negative') => void;
   setImages: React.Dispatch<
     React.SetStateAction<{
       all: string;
@@ -30,6 +32,8 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
   setSelectedFeatures,
   selectedLabel,
   setSelectedLabel,
+  filterMode,
+  setFilterMode,
   setImages,
 }) => {
   const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
@@ -167,8 +171,15 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
             <LabelSelection
               features={selectedFeatures || []}
               selectedLabel={selectedLabel}
+              filterMode={filterMode}
               onLabelChange={(label) => {
                 setSelectedLabel(label);
+                setFilterMode('all');
+                console.log('更新 filterMode:', 'all');
+              }}
+              onFilterModeChange={(mode) => {
+                setFilterMode(mode);
+                console.log('更新 filterMode:', mode);
               }}
             />
           </div>
