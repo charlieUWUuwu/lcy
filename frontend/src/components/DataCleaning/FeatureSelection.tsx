@@ -115,6 +115,7 @@ const FeatureSelection: React.FC<Props> = ({ csv_pth, features, onSelectionConfi
       alert(message);
     } catch (e) {
       console.error('Error calculating top features:', e);
+      alert(`Error calculating top features: ${e}`);
     } finally {
       setIsCalculating(false);
     }
