@@ -155,22 +155,28 @@ export const getTopFeatures = async (
   used_threshold_filter: boolean;
   status: string;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/api/top-features`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      csv_pth,
-      selectedLabel,
-      allFeatures,
-    }),
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/top-features`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        csv_pth,
+        selectedLabel,
+        allFeatures,
+      }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Failed to get top features');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get top features');
+    }
+
+    return await response.json();
+  } catch (error) {
+    // 捕捉後端沒啟動、網路錯誤等
+    console.error('Network or server error:', error);
+    throw new Error('無法連線到後端服務，請確認伺服器是否啟動');
   }
-
-  return response.json();
 };

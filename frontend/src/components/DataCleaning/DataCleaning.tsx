@@ -2,36 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { generateFeatureAnalysis } from '../../apiService';
-import { ProcessedFileData } from '../../types';
+import { useDataCleaningContext } from '../../contexts/DataCleaningContext';
 import LineChart from '../LineChart';
 import FeatureSelection from './FeatureSelection';
 import LabelSelection from './LabelSelection';
 
-interface DataCleaningProps {
-  fileData: ProcessedFileData | null;
-  setFileData: (data: ProcessedFileData | null) => void;
-  selectedFeatures: string[];
-  setSelectedFeatures: (features: string[]) => void;
-  selectedLabel: string | null;
-  setSelectedLabel: (label: string | null) => void;
-  setImages: React.Dispatch<
-    React.SetStateAction<{
-      all: string;
-      positive: string;
-      negative: string;
-    } | null>
-  >;
-}
+const DataCleaning: React.FC = () => {
+  const {
+    fileData,
+    setFileData,
+    selectedFeatures,
+    setSelectedFeatures,
+    selectedLabel,
+    setSelectedLabel,
+  } = useDataCleaningContext();
 
-const DataCleaning: React.FC<DataCleaningProps> = ({
-  fileData,
-  setFileData,
-  selectedFeatures,
-  setSelectedFeatures,
-  selectedLabel,
-  setSelectedLabel,
-  setImages,
-}) => {
   const [saveFolderPath, setSaveFolderPath] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,20 +63,13 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
 
       const { headers, sampledTimestamps, sampledFeatures } =
         await window.electronAPI.readCSV(filePath);
-
       if (sampledTimestamps.length === 0 || sampledFeatures.length === 0) return;
-
-      // 將所有 feature 資料攤平成 values[]
-      const values: number[] = [];
-      sampledFeatures.forEach((featureArray) => {
-        values.push(...featureArray);
-      });
 
       setFileData({
         name: filePath,
         features: headers,
         timestamps: sampledTimestamps,
-        values,
+        featureValues: sampledFeatures,
       });
 
       console.log('採樣後資料長度', sampledTimestamps.length, '特徵數量', headers.length);
@@ -111,11 +89,11 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
     try {
       // Generate feature analysis before navigating
       const results = await generateFeatureAnalysis(selectedFeatures, selectedLabel);
-      setImages({
-        all: results.all,
-        positive: results.positive,
-        negative: results.negative,
-      });
+      // setImages({
+      //   all: results.all,
+      //   positive: results.positive,
+      //   negative: results.negative,
+      // });
 
       // Navigate to model training page
       navigate('/model-training');
@@ -158,26 +136,9 @@ const DataCleaning: React.FC<DataCleaningProps> = ({
         {/* 控制區（說明區） */}
         <div className="h-[40%] bg-gray-100 shadow-inner rounded-lg">
           <div className="h-full grid gap-4 md:grid-cols-2">
-            <FeatureSelection
-              csv_pth={fileData?.name || ''}
-              features={fileData?.features || []}
-              selectedFeatures={selectedFeatures}
-              onFeaturesChange={(features, clearLabel) => {
-                setSelectedFeatures(features);
-                if (clearLabel) {
-                  setSelectedLabel(null);
-                }
-              }}
-              selectedLabel={selectedLabel}
-            />
+            <FeatureSelection csv_pth={fileData?.name || ''} features={fileData?.features || []} />
 
-            <LabelSelection
-              features={selectedFeatures || []}
-              selectedLabel={selectedLabel}
-              onLabelChange={(label) => {
-                setSelectedLabel(label);
-              }}
-            />
+            <LabelSelection />
           </div>
         </div>
       </div>

@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 
 import { getTopFeatures } from '../../apiService';
+import { useDataCleaningContext } from '../../contexts/DataCleaningContext';
 import { SelectionConfig } from '../../types';
 
 interface Props {
   csv_pth: string;
   features: string[];
-  selectedFeatures: string[];
-  onFeaturesChange: (features: string[], clearLabel: boolean) => void;
   onSelectionConfigChange?: (config: Partial<SelectionConfig>) => void;
-  selectedLabel?: string | null;
 }
 
 interface CorrelationDetails {
@@ -19,14 +17,10 @@ interface CorrelationDetails {
   meets_threshold: boolean;
 }
 
-const FeatureSelection: React.FC<Props> = ({
-  csv_pth,
-  features,
-  selectedFeatures,
-  onFeaturesChange,
-  onSelectionConfigChange,
-  selectedLabel,
-}) => {
+const FeatureSelection: React.FC<Props> = ({ csv_pth, features, onSelectionConfigChange }) => {
+  const { selectedFeatures, setSelectedFeatures, selectedLabel, setSelectedLabel } =
+    useDataCleaningContext();
+
   const [isCalculating, setIsCalculating] = useState(false);
   const [topFeatures, setTopFeatures] = useState<string[]>([]);
   const [correlationDetails, setCorrelationDetails] = useState<Record<string, CorrelationDetails>>(
@@ -39,42 +33,46 @@ const FeatureSelection: React.FC<Props> = ({
   } | null>(null);
 
   const handleFeatureToggle = (feature: string) => {
-    const newSelectedFeatures = selectedFeatures.includes(feature)
+    const newSelected = selectedFeatures.includes(feature)
       ? selectedFeatures.filter((f) => f !== feature)
       : [...selectedFeatures, feature];
 
-    updateFeatures(newSelectedFeatures, false);
+    updateFeatures(newSelected, false);
   };
 
   const updateFeatures = (newFeatures: string[], clearLabel: boolean) => {
-    onFeaturesChange(newFeatures, clearLabel);
+    setSelectedFeatures(newFeatures);
+    if (clearLabel) {
+      setSelectedLabel(null);
+    }
+
     if (onSelectionConfigChange) {
       onSelectionConfigChange({ selectedFeatures: newFeatures });
     }
   };
 
   const getFeatureDisplayInfo = (feature: string) => {
-    if (correlationDetails[feature]) {
-      const details = correlationDetails[feature];
-      return {
-        rank: details.rank,
-        correlation: details.correlation,
-        meetsThreshold: details.meets_threshold,
-        isTop: true,
-      };
-    }
-    return { isTop: false };
+    const details = correlationDetails[feature];
+    return details
+      ? {
+          rank: details.rank,
+          correlation: details.correlation,
+          meetsThreshold: details.meets_threshold,
+          isTop: true,
+        }
+      : { isTop: false };
   };
 
   const handleSelectAll = () => {
-    onFeaturesChange(features, false);
+    setSelectedFeatures(features);
   };
 
   const handleDeselectAll = () => {
-    onFeaturesChange([], true);
+    setSelectedFeatures([]);
     setTopFeatures([]);
     setCorrelationDetails({});
     setAnalysisInfo(null);
+    setSelectedLabel(null);
   };
 
   const handleCalculateTop = async () => {
@@ -86,15 +84,9 @@ const FeatureSelection: React.FC<Props> = ({
     setIsCalculating(true);
     try {
       const result = await getTopFeatures(csv_pth, selectedLabel, selectedFeatures);
+      const newSelectedFeatures = [...result.top_features, selectedLabel];
 
-      // Keep the selected label in the feature selection if it was previously selected
-      const newSelectedFeatures = [...result.top_features];
-      newSelectedFeatures.push(selectedLabel);
-
-      // Update the selected features to the recommended ones
-      onFeaturesChange(newSelectedFeatures, false);
-
-      // Store analysis results for highlighting
+      setSelectedFeatures(newSelectedFeatures);
       setTopFeatures(result.top_features);
       setCorrelationDetails(result.correlation_details);
       setAnalysisInfo({
@@ -103,31 +95,27 @@ const FeatureSelection: React.FC<Props> = ({
         usedThresholdFilter: result.used_threshold_filter,
       });
 
-      // Create success message
-      const aboveThreshold = result.features_above_threshold;
-      const threshold = result.threshold_used;
-      const topFeaturesList = result.top_features
+      const topList = result.top_features
         .slice(0, 5)
         .map(
-          (feature, idx) =>
-            `${idx + 1}. ${feature} (r=${result.correlations[feature].toFixed(3)}${result.correlation_details[feature].meets_threshold ? ' ✓' : ''})`,
+          (f, i) =>
+            `${i + 1}. ${f} (r=${result.correlations[f].toFixed(3)}${
+              result.correlation_details[f].meets_threshold ? ' ✓' : ''
+            })`,
         )
         .join('\n');
 
       let message = `計算完成！找到 ${result.top_features.length} 個推薦特徵\n\n`;
-
       if (result.used_threshold_filter) {
-        message += `符合閾值 (>${threshold}) 的特徵數: ${aboveThreshold}\n\n`;
+        message += `符合閾值 (>${result.threshold_used}) 的特徵數: ${result.features_above_threshold}\n\n`;
       } else {
-        message += `無特徵符合閾值 (>${threshold})，已選擇相關性最高的特徵\n\n`;
+        message += `無特徵符合閾值，已選擇相關性最高的特徵\n\n`;
       }
-
-      message += `前5名:\n${topFeaturesList}\n${result.top_features.length > 5 ? '...' : ''}`;
-
+      message += `前5名:\n${topList}${result.top_features.length > 5 ? '\n...' : ''}`;
       alert(message);
-    } catch (error) {
-      console.error('Error calculating top features:', error);
-      // alert(`計算失敗: ${error.message}`);
+    } catch (e) {
+      console.error('Error calculating top features:', e);
+      alert(`Error calculating top features: ${e}`);
     } finally {
       setIsCalculating(false);
     }
@@ -138,27 +126,20 @@ const FeatureSelection: React.FC<Props> = ({
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">特徵選擇</h3>
         <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={handleSelectAll}
-            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
+          <button onClick={handleSelectAll} className="btn bg-blue-500 hover:bg-blue-600">
             全選
           </button>
-          <button
-            onClick={handleDeselectAll}
-            className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-          >
+          <button onClick={handleDeselectAll} className="btn bg-gray-500 hover:bg-gray-600">
             全部取消
           </button>
           <button
             onClick={handleCalculateTop}
             disabled={isCalculating}
-            className={`px-3 py-1 text-sm rounded transition-colors ${
+            className={`btn ${
               isCalculating
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-green-500 text-white hover:bg-green-600'
+                : 'bg-green-500 hover:bg-green-600 text-white'
             }`}
-            title={!selectedLabel ? '請先選擇標籤' : '計算與標籤相關性>0.4的前10個特徵'}
           >
             {isCalculating ? '計算中...' : 'Top 特徵'}
           </button>
@@ -171,9 +152,8 @@ const FeatureSelection: React.FC<Props> = ({
             ✨ 已選擇推薦的重要特徵 (基於與 {selectedLabel} 的相關性)
           </div>
           <div className="text-green-700 text-xs mt-1">
-            閾值: {'>'}
-            {analysisInfo.threshold} | 符合條件: {analysisInfo.featuresAboveThreshold} 個 | 已選擇:{' '}
-            {topFeatures.length} 個
+            閾值: &gt;{analysisInfo.threshold} | 符合條件: {analysisInfo.featuresAboveThreshold} 個
+            | 已選擇: {topFeatures.length} 個
           </div>
         </div>
       )}
@@ -199,7 +179,6 @@ const FeatureSelection: React.FC<Props> = ({
                   type="checkbox"
                   checked={isSelected}
                   onChange={() => handleFeatureToggle(feature)}
-                  className="rounded"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
@@ -219,21 +198,14 @@ const FeatureSelection: React.FC<Props> = ({
                     </span>
                   </div>
                   {displayInfo.isTop && (
-                    <div className="text-xs text-gray-600 mt-1 flex items-center space-x-2">
-                      <span>相關性: {displayInfo.correlation?.toFixed(4)}</span>
+                    <div className="text-xs text-gray-600 mt-1">
+                      相關性: {displayInfo.correlation?.toFixed(4)}
                       {displayInfo.meetsThreshold && (
-                        <span className="text-green-600 font-medium">✓ {'>'}0.4</span>
+                        <span className="text-green-600 ml-2 font-medium">✓ &gt;0.4</span>
                       )}
                     </div>
                   )}
                 </div>
-                {displayInfo.isTop && (
-                  <span
-                    className={displayInfo.meetsThreshold ? 'text-green-600' : 'text-yellow-600'}
-                  >
-                    ⭐
-                  </span>
-                )}
               </label>
             );
           })}

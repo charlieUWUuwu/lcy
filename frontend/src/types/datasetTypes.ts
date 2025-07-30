@@ -8,7 +8,7 @@ export interface ProcessedFileData {
   name: string;
   features: string[];
   timestamps: string[];
-  values: number[];
+  featureValues: number[][];
 }
 
 // 原始文件數據

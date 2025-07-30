@@ -1,21 +1,24 @@
 import React from 'react';
 
+import { useDataCleaningContext } from '../../contexts/DataCleaningContext';
+
 interface LabelSelectionProps {
-  features: string[];
-  selectedLabel: string | null;
-  onLabelChange: (label: string | null) => void;
-  // For JSON configuration
   configJson?: string;
 }
 
-const LabelSelection: React.FC<LabelSelectionProps> = ({
-  features,
-  selectedLabel,
-  onLabelChange,
-}) => {
+const LabelSelection: React.FC<LabelSelectionProps> = () => {
+  const { selectedFeatures, selectedLabel, setSelectedLabel, filterMode, setFilterMode } =
+    useDataCleaningContext();
+
   const handleLabelChange = (feature: string) => {
-    // Update the parent component
-    onLabelChange(feature);
+    setSelectedLabel(feature);
+    setFilterMode('all'); // 每次選新的 label，預設回 all
+    console.log('選擇模式: all');
+  };
+
+  const handleFilterModeChange = (mode: 'all' | 'positive' | 'negative') => {
+    setFilterMode(mode);
+    console.log(`選擇模式: ${mode}`);
   };
 
   return (
@@ -24,9 +27,9 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
         Label Selection
       </div>
       <div className="max-h-60 overflow-y-auto custom-scroll border p-2 rounded shadow-sm">
-        {features.length > 0 ? (
-          features.map((feature, index) => (
-            <div key={index} className="mb-1">
+        {selectedFeatures.length > 0 ? (
+          selectedFeatures.map((feature, index) => (
+            <div key={index} className="mb-2">
               <label className="flex items-center gap-[5px]">
                 <input
                   type="radio"
@@ -36,6 +39,41 @@ const LabelSelection: React.FC<LabelSelectionProps> = ({
                 />
                 <span>{feature}</span>
               </label>
+              {/* 有選擇 feature 才顯示 all/positive/negative 選項 */}
+              {selectedLabel === feature && (
+                <div className="ml-5 mt-2 bg-gray-100 p-2 rounded border border-gray-300 text-sm flex gap-4">
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="filter-mode"
+                      value="all"
+                      checked={filterMode === 'all'}
+                      onChange={() => handleFilterModeChange('all')}
+                    />
+                    All
+                  </label>
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="filter-mode"
+                      value="positive"
+                      checked={filterMode === 'positive'}
+                      onChange={() => handleFilterModeChange('positive')}
+                    />
+                    Positive
+                  </label>
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="filter-mode"
+                      value="negative"
+                      checked={filterMode === 'negative'}
+                      onChange={() => handleFilterModeChange('negative')}
+                    />
+                    Negative
+                  </label>
+                </div>
+              )}
             </div>
           ))
         ) : (
